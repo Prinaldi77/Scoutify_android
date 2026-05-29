@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_rounded_white"
+    android:padding="28dp"
+    android:gravity="center_horizontal">
+
+    <!-- Premium Icon Lock with dynamic style -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="36dp"
+        app:cardElevation="2dp"
+        app:strokeColor="@color/primaryBrown"
+        app:strokeWidth="1.5dp"
+        app:cardBackgroundColor="@color/accent_sand">
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_security"
+            app:tint="@color/primaryBrown" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Masuk dengan Sidik Jari"
+        android:textColor="@color/primaryDarkBrown"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="28dp"
+        android:text="Sentuh sensor sidik jari perangkat untuk melanjutkan verifikasi biometrik Scoutify."
+        android:textColor="@color/grey_text"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp" />
+
+    <!-- Pulse fingerprint mock graphic -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/btnMockFingerprint"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginBottom="28dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardCornerRadius="50dp"
+        app:cardElevation="4dp"
+        app:strokeColor="@color/primaryBrown"
+        app:strokeWidth="2dp"
+        app:cardBackgroundColor="@color/white">
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_security"
+            app:tint="@color/primaryBrown" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/tvFingerprintStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="Ketuk icon untuk memindai sidik jari 👆"
+        android:textColor="@color/primaryBrown"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:gravity="center" />
+
+    <!-- Fallback action button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnUsePassword"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gunakan Password Akun"
+        android:textColor="@color/grey_text"
+        android:textAllCaps="false" />
+</LinearLayout>

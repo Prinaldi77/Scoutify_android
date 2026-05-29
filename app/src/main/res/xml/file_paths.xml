@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- External cache dir: where we save selfie temp files -->
+    <external-cache-path
+        name="selfie_images"
+        path="." />
+    <!-- Internal cache dir fallback -->
+    <cache-path
+        name="selfie_cache"
+        path="." />
+</paths>

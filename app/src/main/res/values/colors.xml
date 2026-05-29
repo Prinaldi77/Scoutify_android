@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Scoutify Modern Brown Palette -->
+    <color name="primary">#6D4C41</color>
+    <color name="primary_dark">#4E342E</color>
+    <color name="primary_light">#8D6E63</color>
+
+    <!-- Secondary & Background -->
+    <color name="backgroundCream">#F5E6CA</color>
+    <color name="accent_beige">#EFE3D0</color>
+    <color name="warm_white">#FFFDF9</color>
+
+    <!-- Aliases to maintain compatibility -->
+    <color name="primaryBrown">#6D4C41</color>
+    <color name="primaryDarkBrown">#4E342E</color>
+    <color name="primaryLightBrown">#8D6E63</color>
+    <color name="accent_sand">#EFE3D0</color>
+    <color name="divider">#D7CCC8</color>
+
+    <!-- Accent Colors -->
+    <color name="scout_green">#4CAF50</color>
+    <color name="scout_orange">#FF9800</color>
+    <color name="scout_red">#E53935</color>
+    <color name="scout_blue">#2196F3</color>
+
+    <!-- Attendance Status Colors -->
+    <color name="statusHadirBg">#E8F5E9</color>
+    <color name="statusHadirText">#2E7D32</color>
+    <color name="statusSakitBg">#FFF8E1</color>
+    <color name="statusSakitText">#F57F17</color>
+    <color name="statusIzinBg">#E3F2FD</color>
+    <color name="statusIzinText">#1565C0</color>
+    <color name="statusAlfaBg">#FFEBEE</color>
+    <color name="statusAlfaText">#C62828</color>
+
+    <!-- Additional colors for Scoutify UI components -->
+    <color name="surfaceBrown">#D7CCC8</color>
+    <color name="menuIconBg1">#BCAAA4</color>
+    <color name="grey_text">#757575</color>
+    <color name="accent_cream">#FFF9E1</color>
+</resources>

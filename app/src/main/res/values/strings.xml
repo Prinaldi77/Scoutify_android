@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Scoutify</string>
+    <string-array name="attendance_status_options">
+        <item>Hadir</item>
+        <item>Izin</item>
+        <item>Sakit</item>
+        <item>Alfa</item>
+    </string-array>
+
+    <!-- Attendance Status Strings -->
+    <string name="status_present">Hadir</string>
+    <string name="status_sick">Sakit</string>
+    <string name="status_permit">Izin</string>
+    <string name="status_alpha">Alfa</string>
+</resources>

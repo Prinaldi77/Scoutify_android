@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Pilih Lokasi</title>
+    <link rel="stylesheet" href="leaflet.css" />
+    <style>
+        body, html, #map {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background-color: #f5f5f5;
+        }
+        #confirm-btn {
+            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background-color: #4E3629; color: white;
+            border: none; padding: 14px 28px; font-size: 14px; font-weight: bold;
+            border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.35);
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <button id="confirm-btn">Konfirmasi Lokasi 📍</button>
+
+    <script src="leaflet.js"></script>
+    <script>
+        var map;
+        var marker;
+
+        function initMap(lat, lng) {
+            if (map) return;
+            map = L.map('map').setView([lat, lng], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            var customIcon = L.icon({
+                iconUrl: 'marker-icon.png',
+                shadowUrl: 'marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            });
+
+            marker = L.marker([lat, lng], {icon: customIcon, draggable: true}).addTo(map);
+
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+            });
+
+            // Penting: Memastikan peta muncul penuh
+            setTimeout(function() { map.invalidateSize(); }, 400);
+        }
+
+        // Panggil init dari Android
+        window.onload = function() {
+            var lat = -6.9175;
+            var lng = 107.6191;
+            if (typeof AndroidMapInterface !== 'undefined') {
+                lat = AndroidMapInterface.getCurrentLatitude();
+                lng = AndroidMapInterface.getCurrentLongitude();
+            }
+            initMap(lat, lng);
+        };
+
+        document.getElementById('confirm-btn').onclick = function() {
+            var pos = marker.getLatLng();
+            if (typeof AndroidMapInterface !== 'undefined') {
+                AndroidMapInterface.onLocationSelected(pos.lat, pos.lng);
+            }
+        };
+    </script>
+</body>
+</html>
