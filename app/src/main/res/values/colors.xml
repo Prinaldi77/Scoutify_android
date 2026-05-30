@@ -41,4 +41,9 @@
     <color name="menuIconBg1">#BCAAA4</color>
     <color name="grey_text">#757575</color>
     <color name="accent_cream">#FFF9E1</color>
+
+    <!-- Notification & Badge Colors -->
+    <color name="accentOrange">#FF9800</color>
+    <color name="badgeBlue">#2196F3</color>
+    <color name="badgeGreen">#4CAF50</color>
 </resources>

@@ -7,17 +7,22 @@ import androidx.security.crypto.MasterKey
 
 class SessionManager(context: Context) {
 
-    private val masterKey = MasterKey.Builder(context)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
+    val prefs: SharedPreferences = try {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
 
-    val prefs: SharedPreferences = EncryptedSharedPreferences.create(
-        context,
-        "secure_scoutify_session",
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+        EncryptedSharedPreferences.create(
+            context,
+            "secure_scoutify_session",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    } catch (e: Exception) {
+        // Fallback to standard SharedPreferences if encrypted fails due to keystore corruption
+        context.getSharedPreferences("scoutify_session_fallback", Context.MODE_PRIVATE)
+    }
 
     companion object {
         const val KEY_TOKEN = "jwt_token"

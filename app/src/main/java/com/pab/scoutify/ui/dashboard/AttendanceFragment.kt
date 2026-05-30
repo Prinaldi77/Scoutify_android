@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
@@ -127,6 +126,7 @@ class AttendanceFragment : Fragment() {
         dashboardViewModel = ViewModelProvider(requireActivity())[DashboardViewModel::class.java]
 
         setupRecyclerView()
+        setupStatCards()
         checkLocationPermissions()
         setupRoleBasedUI()
         setupObservers()
@@ -223,7 +223,7 @@ class AttendanceFragment : Fragment() {
                             .filter { !deletedIds.contains(it.id.toString()) }
                             .map { kegiatan ->
                                 AttendanceSession(
-                                    id = kegiatan.id,
+                                    id = kegiatan.id ?: 0L,
                                     title = kegiatan.nama ?: "Latihan Rutin",
                                     date = kegiatan.tanggal ?: "-",
                                     presentCount = 0,
@@ -334,11 +334,11 @@ class AttendanceFragment : Fragment() {
             sessionManager.prefs.getStringSet("deleted_kegiatan_ids", emptySet()) ?: emptySet()
         val raw = listOf(
             AttendanceSession(
-                1, "Latihan Mingguan (Offline)", "2026-05-14",
+                1L, "Latihan Mingguan (Offline)", "2026-05-14",
                 45, 48, savedLat, savedLng, savedRadius
             ),
             AttendanceSession(
-                2, "Latihan Teknik Kepramukaan (Offline)", "2026-05-07",
+                2L, "Latihan Teknik Kepramukaan (Offline)", "2026-05-07",
                 40, 48, savedLat, savedLng, savedRadius / 2f
             )
         )
@@ -633,7 +633,7 @@ class AttendanceFragment : Fragment() {
         bottomSheet.setContentView(sheetView)
 
         val etNotes = sheetView.findViewById<android.widget.EditText>(R.id.etNotes)
-        val spinnerStatus = sheetView.findViewById<android.widget.Spinner>(R.id.spinnerStatus)
+        val spinnerStatus = sheetView.findViewById<android.widget.AutoCompleteTextView>(R.id.spinnerStatus)
         val btnSave = sheetView.findViewById<View>(R.id.btnSave)
         val btnCancel = sheetView.findViewById<View>(R.id.btnCancel)
 
@@ -642,15 +642,13 @@ class AttendanceFragment : Fragment() {
         val permitAdapter = ArrayAdapter(
             requireContext(), android.R.layout.simple_spinner_item, permitTypes
         )
-        permitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerStatus?.adapter = permitAdapter
+        spinnerStatus?.setAdapter(permitAdapter)
 
         btnCancel?.setOnClickListener { bottomSheet.dismiss() }
         btnSave?.setOnClickListener {
-            val type = when (spinnerStatus?.selectedItem?.toString()?.lowercase()) {
-                "sakit" -> "sakit"
-                else -> "izin"
-            }
+            val typeText = spinnerStatus?.text?.toString()?.lowercase() ?: ""
+            val type = if (typeText == "sakit") "sakit" else "izin"
+            
             val reason = etNotes?.text?.toString()?.trim() ?: ""
             if (reason.isEmpty()) {
                 showSnackbar("Harap isi keterangan izin/sakit")
@@ -704,30 +702,32 @@ class AttendanceFragment : Fragment() {
         val memberNames = anggotasList.map { "${it.nama ?: "Anggota"} (${it.kelas ?: "-"})" }
         val memberAdapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, memberNames)
-        memberAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        dialogBinding.spinnerMember.adapter = memberAdapter
+        dialogBinding.spinnerMember.setAdapter(memberAdapter)
 
         val activityTitles = sessions.map { it.title }
         val activityAdapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, activityTitles)
-        activityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        dialogBinding.spinnerActivity.adapter = activityAdapter
+        dialogBinding.spinnerActivity.setAdapter(activityAdapter)
+
+        val statusOptions = resources.getStringArray(R.array.attendance_status_options).toList()
+        val statusAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, statusOptions)
+        dialogBinding.spinnerStatus.setAdapter(statusAdapter)
 
         dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
         dialogBinding.btnSave.setOnClickListener {
-            val memberIdx = dialogBinding.spinnerMember.selectedItemPosition
-            val activityIdx = dialogBinding.spinnerActivity.selectedItemPosition
-            val statusStr = dialogBinding.spinnerStatus.selectedItem.toString()
-            val notes = dialogBinding.etNotes.text.toString().trim()
+            val memberText = dialogBinding.spinnerMember.text.toString()
+            val activityText = dialogBinding.spinnerActivity.text.toString()
+            
+            val mIdx = memberNames.indexOf(memberText)
+            val aIdx = activityTitles.indexOf(activityText)
 
-            if (memberIdx < 0 || activityIdx < 0) return@setOnClickListener
+            if (mIdx < 0 || aIdx < 0) {
+                showSnackbar("Pilih anggota dan kegiatan dengan benar")
+                return@setOnClickListener
+            }
 
-            val selectedMember = anggotasList[memberIdx]
-            val selectedSession = sessions[activityIdx]
-
-            val calendar = Calendar.getInstance()
-            val timeFormat = SimpleDateFormat("HH:mm", Locale.US)
-            val currentTimeString = timeFormat.format(calendar.time)
+            val selectedMember = anggotasList[mIdx]
+            val selectedSession = sessions[aIdx]
 
             val mediaType = "text/plain".toMediaTypeOrNull()
             val latBody = selectedSession.latitude.toString().toRequestBody(mediaType)
@@ -743,6 +743,32 @@ class AttendanceFragment : Fragment() {
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    private fun setupStatCards() {
+        // Present Card
+        binding.statPresent.cardStat.setCardBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"))
+        binding.statPresent.tvStatValue.setTextColor(android.graphics.Color.parseColor("#2E7D32"))
+        binding.statPresent.tvStatLabel.setTextColor(android.graphics.Color.parseColor("#2E7D32"))
+        binding.statPresent.tvStatLabel.text = getString(R.string.status_present)
+
+        // Sick Card
+        binding.statSick.cardStat.setCardBackgroundColor(android.graphics.Color.parseColor("#FFF8E1"))
+        binding.statSick.tvStatValue.setTextColor(android.graphics.Color.parseColor("#F57F17"))
+        binding.statSick.tvStatLabel.setTextColor(android.graphics.Color.parseColor("#F57F17"))
+        binding.statSick.tvStatLabel.text = getString(R.string.status_sick)
+
+        // Permit Card
+        binding.statPermit.cardStat.setCardBackgroundColor(android.graphics.Color.parseColor("#E3F2FD"))
+        binding.statPermit.tvStatValue.setTextColor(android.graphics.Color.parseColor("#1565C0"))
+        binding.statPermit.tvStatLabel.setTextColor(android.graphics.Color.parseColor("#1565C0"))
+        binding.statPermit.tvStatLabel.text = getString(R.string.status_permit)
+
+        // Alpha Card
+        binding.statAlpha.cardStat.setCardBackgroundColor(android.graphics.Color.parseColor("#FFEBEE"))
+        binding.statAlpha.tvStatValue.setTextColor(android.graphics.Color.parseColor("#C62828"))
+        binding.statAlpha.tvStatLabel.setTextColor(android.graphics.Color.parseColor("#C62828"))
+        binding.statAlpha.tvStatLabel.text = getString(R.string.status_alpha)
+    }
 
     private fun showSnackbar(message: String) {
         if (_binding != null) {

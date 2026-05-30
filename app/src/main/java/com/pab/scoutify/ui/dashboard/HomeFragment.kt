@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.navigation.fragment.findNavController
 import com.pab.scoutify.R
 import com.pab.scoutify.databinding.FragmentHomeBinding
 import com.pab.scoutify.ui.auth.SessionManager
@@ -109,22 +109,30 @@ class HomeFragment : Fragment() {
 
 
     private fun setupMenuClicks() {
-        val bottomNav = activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation)
-
         binding.menuMember.setOnClickListener {
-            bottomNav?.selectedItemId = R.id.nav_anggota
+            val role = sessionManager.getRole() ?: "siswa"
+            if (role.lowercase() == "pembina" || role.lowercase() == "admin") {
+                findNavController().navigate(R.id.nav_anggota)
+            } else {
+                Toast.makeText(context, "Fitur ini hanya tersedia untuk Pembina", Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.menuAttendance.setOnClickListener {
-            bottomNav?.selectedItemId = R.id.nav_presensi
+            findNavController().navigate(R.id.nav_presensi)
         }
 
         binding.menuActivity.setOnClickListener {
-            bottomNav?.selectedItemId = R.id.nav_kegiatan
+            val role = sessionManager.getRole() ?: "siswa"
+            if (role.lowercase() == "siswa") {
+                findNavController().navigate(R.id.nav_kegiatan)
+            } else {
+                Toast.makeText(context, "Menu Kegiatan diakses melalui panel pembina", Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.menuAnnouncement.setOnClickListener {
-            bottomNav?.selectedItemId = R.id.nav_pesan
+            findNavController().navigate(R.id.nav_more)
         }
     }
 

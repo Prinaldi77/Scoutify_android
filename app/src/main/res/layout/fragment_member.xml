@@ -140,7 +140,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:visibility="visible"
+                android:visibility="gone"
                 android:paddingTop="12dp">
 
                 <com.google.android.material.card.MaterialCardView
@@ -186,46 +186,68 @@
             </LinearLayout>
 
             <!-- Treasury Tab (Hidden by default) -->
-            <LinearLayout
+            <androidx.core.widget.NestedScrollView
                 android:id="@+id/layoutContentKas"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="20dp"
-                android:visibility="gone">
-                <!-- Treasury content modernized -->
-                <com.google.android.material.card.MaterialCardView
+                android:visibility="gone"
+                android:padding="20dp">
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="24dp"
-                    app:cardElevation="4dp"
-                    app:strokeWidth="0dp">
-                    <LinearLayout
+                    android:orientation="vertical">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardTotalKas"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_gradient_brown"
-                        android:padding="24dp"
-                        android:orientation="vertical">
-                        <TextView
-                            android:layout_width="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="4dp"
+                        app:strokeWidth="0dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="TOTAL BALANCE"
-                            android:textColor="#D7CCC8"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:id="@+id/tvTotalKas"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="Rp 1.250.000"
-                            android:textColor="@color/white"
-                            android:textSize="32sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-                <!-- Add treasury history list here -->
-            </LinearLayout>
+                            android:background="@drawable/bg_gradient_brown"
+                            android:padding="24dp"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="TOTAL BALANCE"
+                                android:textColor="#D7CCC8"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                            <TextView
+                                android:id="@+id/tvTotalKas"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="Rp 1.250.000"
+                                android:textColor="@color/white"
+                                android:textSize="32sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:layout_marginBottom="16dp"
+                        android:text="Recent Transactions"
+                        android:textColor="@color/primaryDarkBrown"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutKasHistoryContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
 
             <!-- Notes Tab (Hidden by default) -->
             <LinearLayout
@@ -233,22 +255,37 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:gravity="center"
                 android:padding="24dp"
-                android:visibility="gone">
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/ic_announcement"
-                    app:tint="@color/divider" />
-                <TextView
-                    android:layout_width="wrap_content"
+                android:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:text="No logs yet"
-                    android:textColor="@color/primaryLightBrown"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:layout_weight="1">
+                    <ImageView
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/ic_announcement"
+                        app:tint="@color/divider" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="No logs yet"
+                        android:textColor="@color/primaryLightBrown"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddCatatan"
+                    style="@style/Widget.Scoutify.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Add New Note"
+                    app:icon="@drawable/ic_add" />
             </LinearLayout>
 
         </FrameLayout>

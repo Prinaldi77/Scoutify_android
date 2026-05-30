@@ -103,10 +103,10 @@
                     android:rowCount="1">
 
                     <!-- Stats Items with modern minimal design -->
-                    <include layout="@layout/view_attendance_stat_item" app:statTitle="@string/status_present" app:statColor="#2E7D32" app:statBg="#E8F5E9" android:id="@+id/statPresent" />
-                    <include layout="@layout/view_attendance_stat_item" app:statTitle="@string/status_sick" app:statColor="#F57F17" app:statBg="#FFF8E1" android:id="@+id/statSick" />
-                    <include layout="@layout/view_attendance_stat_item" app:statTitle="@string/status_permit" app:statColor="#1565C0" app:statBg="#E3F2FD" android:id="@+id/statPermit" />
-                    <include layout="@layout/view_attendance_stat_item" app:statTitle="@string/status_alpha" app:statColor="#C62828" app:statBg="#FFEBEE" android:id="@+id/statAlpha" />
+                    <include layout="@layout/view_attendance_stat_item" android:id="@+id/statPresent" />
+                    <include layout="@layout/view_attendance_stat_item" android:id="@+id/statSick" />
+                    <include layout="@layout/view_attendance_stat_item" android:id="@+id/statPermit" />
+                    <include layout="@layout/view_attendance_stat_item" android:id="@+id/statAlpha" />
                 </GridLayout>
 
                 <!-- Active Check-out Card -->

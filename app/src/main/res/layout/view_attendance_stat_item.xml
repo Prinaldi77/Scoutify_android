@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardStat"
     android:layout_width="0dp"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
     android:layout_weight="1"
     app:cardCornerRadius="12dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="?attr/statBg">
+    app:cardBackgroundColor="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
-            android:textColor="?attr/statColor"
+            android:textColor="@android:color/black"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -29,8 +30,8 @@
             android:id="@+id/tvStatLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="?attr/statTitle"
-            android:textColor="?attr/statColor"
+            android:text="-"
+            android:textColor="@android:color/black"
             android:textSize="10sp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

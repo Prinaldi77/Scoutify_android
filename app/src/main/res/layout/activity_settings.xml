@@ -16,11 +16,19 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_chevron_right"
-            app:navigationIconTint="@color/primaryDarkBrown"
             app:title="App Settings"
             app:titleCentered="true"
-            app:titleTextColor="@color/primaryDarkBrown" />
+            app:titleTextColor="@color/primaryDarkBrown">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_chevron_right"
+                android:rotation="180"
+                app:tint="@color/primaryDarkBrown" />
+        </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -91,8 +99,42 @@
 
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="18dp" android:background="@color/divider" />
 
+                    <!-- ID Card Option -->
+                    <LinearLayout
+                        android:id="@+id/btnDigitalIdCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="18dp"
+                        android:orientation="horizontal"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_person"
+                            app:tint="@color/primaryBrown" />
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="16dp"
+                            android:text="Digital ID Card"
+                            android:textColor="@color/primaryDarkBrown"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="@color/divider" />
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="18dp" android:background="@color/divider" />
+
                     <!-- Notifications -->
-                    <RelativeLayout
+                    <LinearLayout
+                        android:id="@+id/btnNotifications"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="18dp"
@@ -106,10 +148,10 @@
                             android:src="@drawable/ic_notifications"
                             app:tint="@color/primaryBrown" />
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:layout_marginStart="16dp"
-                            android:layout_toEndOf="@id/ivNotifIcon"
                             android:text="Push Notifications"
                             android:textColor="@color/primaryDarkBrown"
                             android:textSize="15sp"
@@ -117,46 +159,21 @@
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
                             android:src="@drawable/ic_chevron_right"
                             app:tint="@color/divider" />
-                    </RelativeLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
 
-            <!-- Section: Security -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginBottom="12dp"
-                android:letterSpacing="0.05"
-                android:text="SECURITY"
-                android:textColor="@color/primaryLightBrown"
-                android:textSize="11sp"
-                android:textStyle="bold" />
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="18dp" android:background="@color/divider" />
 
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="28dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/white"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <!-- Biometric Toggle -->
-                    <RelativeLayout
+                    <!-- Security -->
+                    <LinearLayout
+                        android:id="@+id/btnSecurity"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="18dp">
+                        android:padding="18dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
                         <ImageView
                             android:id="@+id/ivBioIcon"
                             android:layout_width="24dp"
@@ -164,23 +181,197 @@
                             android:src="@drawable/ic_lock"
                             app:tint="@color/primaryBrown" />
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:layout_marginStart="16dp"
-                            android:layout_toEndOf="@id/ivBioIcon"
-                            android:text="Biometric Sign-in"
+                            android:text="Security &amp; Password"
                             android:textColor="@color/primaryDarkBrown"
                             android:textSize="15sp"
                             android:textStyle="bold" />
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/switchBiometric"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true" />
-                    </RelativeLayout>
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="@color/divider" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Admin Section -->
+            <LinearLayout
+                android:id="@+id/layoutAdminSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginBottom="12dp"
+                    android:letterSpacing="0.05"
+                    android:text="ADMINISTRATION"
+                    android:textColor="@color/primaryLightBrown"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="28dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/divider">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:id="@+id/btnKelolaEvent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Manage Events"
+                                android:textColor="@color/primaryDarkBrown"
+                                android:textStyle="bold" />
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_chevron_right" app:tint="@color/divider" />
+                        </LinearLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="18dp" android:background="@color/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/btnKelolaLokasi"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Manage Location (Geofence)"
+                                android:textColor="@color/primaryDarkBrown"
+                                android:textStyle="bold" />
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_chevron_right" app:tint="@color/divider" />
+                        </LinearLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="18dp" android:background="@color/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/btnKelolaDivisi"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Manage Treasury"
+                                android:textColor="@color/primaryDarkBrown"
+                                android:textStyle="bold" />
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_chevron_right" app:tint="@color/divider" />
+                        </LinearLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="18dp" android:background="@color/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/btnKelolaPiket"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Manage Picket Schedule"
+                                android:textColor="@color/primaryDarkBrown"
+                                android:textStyle="bold" />
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_chevron_right" app:tint="@color/divider" />
+                        </LinearLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="18dp" android:background="@color/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/btnKelolaPeraturan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Manage Regulations"
+                                android:textColor="@color/primaryDarkBrown"
+                                android:textStyle="bold" />
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_chevron_right" app:tint="@color/divider" />
+                        </LinearLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="18dp" android:background="@color/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/btnKelolaAnggota"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Manage Member Access"
+                                android:textColor="@color/primaryDarkBrown"
+                                android:textStyle="bold" />
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_chevron_right" app:tint="@color/divider" />
+                        </LinearLayout>
+
+                        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="18dp" android:background="@color/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/btnRekapAbsensi"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="18dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Export Attendance Recap"
+                                android:textColor="@color/primaryDarkBrown"
+                                android:textStyle="bold" />
+                            <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/ic_chevron_right" app:tint="@color/divider" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"

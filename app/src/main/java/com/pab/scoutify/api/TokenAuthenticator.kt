@@ -1,6 +1,7 @@
 package com.pab.scoutify.api
 
 import android.content.Context
+import com.pab.scoutify.model.Tokens
 import com.pab.scoutify.model.request.RefreshTokenRequest
 import com.pab.scoutify.ui.auth.SessionManager
 import kotlinx.coroutines.runBlocking
@@ -33,12 +34,13 @@ class TokenAuthenticator(private val context: Context) : Authenticator {
             }
 
             // Sync API call to get a new token
-            val newTokens = runBlocking {
+            val newTokens: Tokens? = runBlocking {
                 try {
                     val tempService = RetrofitClient.getTempInstance()
                     val refreshResponse = tempService.refreshToken(RefreshTokenRequest(refreshToken))
+                    // LoginResponse contains 'tokens' directly, not inside a 'data' field
                     if (refreshResponse.isSuccessful && refreshResponse.body()?.success == true) {
-                        refreshResponse.body()?.data?.tokens
+                        refreshResponse.body()?.tokens
                     } else {
                         null
                     }
@@ -47,14 +49,16 @@ class TokenAuthenticator(private val context: Context) : Authenticator {
                 }
             }
 
-            if (newTokens != null) {
+            val accessToken = newTokens?.accessToken
+            if (accessToken != null) {
                 // Update local storage
-                sessionManager.saveAuthToken(newTokens.accessToken, newTokens.refreshToken)
-                RetrofitClient.authToken = newTokens.accessToken
+                // newTokens is smart-cast to non-null Tokens here because accessToken is not null
+                sessionManager.saveAuthToken(accessToken, newTokens.refreshToken)
+                RetrofitClient.authToken = accessToken
 
                 // Retry request with new token
                 return response.request.newBuilder()
-                    .header("Authorization", "Bearer ${newTokens.accessToken}")
+                    .header("Authorization", "Bearer $accessToken")
                     .build()
             } else {
                 // Refresh failed: clear session

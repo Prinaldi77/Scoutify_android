@@ -19,8 +19,8 @@ android {
 
     buildTypes {
         debug {
-            // URL untuk testing lokal via Ngrok
-            buildConfigField("String", "BASE_URL", "\"https://nontoxic-meaningless-fernando.ngrok-free.dev/api/\"")
+            // URL untuk testing lokal via loopback emulator
+            buildConfigField("String", "BASE_URL", "\"https://scoutify.my.id/api/\"")
         }
         release {
             isMinifyEnabled = true
@@ -39,6 +39,12 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
     }
 }
 

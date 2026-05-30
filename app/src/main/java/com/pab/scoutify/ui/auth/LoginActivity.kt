@@ -2,16 +2,12 @@ package com.pab.scoutify.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import com.pab.scoutify.R
 import com.pab.scoutify.api.RetrofitClient
 import com.pab.scoutify.databinding.ActivityLoginBinding
 import com.pab.scoutify.ui.dashboard.DashboardActivity
@@ -69,14 +65,22 @@ class LoginActivity : AppCompatActivity() {
                     
                     val loginResponse = resource.data
                     if (loginResponse.success == true) {
-                        val token = loginResponse.data?.tokens?.accessToken
-                        val role = loginResponse.data?.user?.role
+                        val token = loginResponse.tokens?.accessToken
+                        val user = loginResponse.user
+                        val role = user?.role
+                        
                         if (token != null && role != null) {
                             sessionManager.saveAuthToken(token)
                             sessionManager.saveRole(role)
                             
-                            val userId = loginResponse.data?.user?.id ?: -1
-                            val userName = loginResponse.data?.user?.name ?: ""
+                            val userIdRaw = user.id
+                            val userId = when (userIdRaw) {
+                                is Number -> userIdRaw.toInt()
+                                is String -> userIdRaw.toIntOrNull() ?: -1
+                                else -> -1
+                            }
+                            val userName = user.name ?: ""
+
                             sessionManager.saveUserId(userId)
                             sessionManager.saveUserName(userName)
                             
@@ -85,6 +89,8 @@ class LoginActivity : AppCompatActivity() {
                             
                             Toast.makeText(this, "Login Sukses sebagai $role!", Toast.LENGTH_SHORT).show()
                             moveToDashboard()
+                        } else {
+                            Toast.makeText(this, "Respons login tidak lengkap dari server.", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         val message = loginResponse.message ?: "Email/Password salah"
@@ -102,7 +108,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showBiometricDialog() {
         val biometricManager = BiometricManager.from(this)
-        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)) {
+        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
             BiometricManager.BIOMETRIC_SUCCESS -> {
                 val executor = ContextCompat.getMainExecutor(this)
                 val biometricPrompt = BiometricPrompt(this, executor,
@@ -130,6 +136,7 @@ class LoginActivity : AppCompatActivity() {
                     .setTitle("Masuk Ke Scoutify")
                     .setSubtitle("Gunakan Sidik Jari Anda untuk melanjutkan")
                     .setNegativeButtonText("Batal")
+                    .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
                     .build()
 
                 biometricPrompt.authenticate(promptInfo)
