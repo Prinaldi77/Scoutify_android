@@ -20,7 +20,7 @@ android {
     buildTypes {
         debug {
             // URL untuk testing lokal via loopback emulator
-            buildConfigField("String", "BASE_URL", "\"https://scoutify.my.id/api/\"")
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3000/api/\"")
         }
         release {
             isMinifyEnabled = true
