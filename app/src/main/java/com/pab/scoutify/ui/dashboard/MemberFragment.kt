@@ -386,11 +386,61 @@ class MemberFragment : Fragment() {
         membersList.clear()
         membersList.addAll(
             listOf(
-                Anggota(1, "Aiden Thompson", "IX-A", "Ketua Regu", "2024", null, "aktif"),
-                Anggota(2, "Bella Garcia", "VIII-C", "Wakil Ketua", "2024", null, "aktif"),
-                Anggota(3, "Caleb Wilson", "IX-B", "Anggota", "2025", null, "aktif"),
-                Anggota(4, "Diana Prince", "IX-A", "Sekretaris", "2024", null, "aktif"),
-                Anggota(5, "Ethan Hunt", "VII-D", "Bendahara", "2025", null, "aktif")
+                Anggota(
+                    id = 1,
+                    nama = "Aiden Thompson",
+                    nisn = null,
+                    kelas = "IX-A",
+                    jabatan = "Ketua Regu",
+                    regu = null,
+                    angkatan = "2024",
+                    fotoUrl = null,
+                    status = "aktif"
+                ),
+                Anggota(
+                    id = 2,
+                    nama = "Bella Garcia",
+                    nisn = null,
+                    kelas = "VIII-C",
+                    jabatan = "Wakil Ketua",
+                    regu = null,
+                    angkatan = "2024",
+                    fotoUrl = null,
+                    status = "aktif"
+                ),
+                Anggota(
+                    id = 3,
+                    nama = "Caleb Wilson",
+                    nisn = null,
+                    kelas = "IX-B",
+                    jabatan = "Anggota",
+                    regu = null,
+                    angkatan = "2025",
+                    fotoUrl = null,
+                    status = "aktif"
+                ),
+                Anggota(
+                    id = 4,
+                    nama = "Diana Prince",
+                    nisn = null,
+                    kelas = "IX-A",
+                    jabatan = "Sekretaris",
+                    regu = null,
+                    angkatan = "2024",
+                    fotoUrl = null,
+                    status = "aktif"
+                ),
+                Anggota(
+                    id = 5,
+                    nama = "Ethan Hunt",
+                    nisn = null,
+                    kelas = "VII-D",
+                    jabatan = "Bendahara",
+                    regu = null,
+                    angkatan = "2025",
+                    fotoUrl = null,
+                    status = "aktif"
+                )
             )
         )
         adapter.notifyDataSetChanged()

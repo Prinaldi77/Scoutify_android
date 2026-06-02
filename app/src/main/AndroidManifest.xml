@@ -16,6 +16,10 @@
         android:theme="@style/Theme.Scoutify"
         android:usesCleartextTraffic="true">
 
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDCSVHam6OVR4s0LpDRltkKApH04Ly5FnI" />
+
         <activity
             android:name=".ui.auth.LoginActivity"
             android:exported="true">

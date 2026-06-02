@@ -1,17 +1,34 @@
 package com.pab.scoutify.data.repository
 
-import com.pab.scoutify.api.RetrofitClient
+import com.pab.scoutify.api.ApiService
+import com.pab.scoutify.api.AttendanceApiService
+import com.pab.scoutify.model.ActiveActivity
+import com.pab.scoutify.model.AttendanceStatus
 import com.pab.scoutify.model.BaseResponse
 import com.pab.scoutify.model.request.CheckOutRequest
 import com.pab.scoutify.utils.Resource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AttendanceRepository {
-
-    private val apiService = RetrofitClient.instance
+@Singleton
+class AttendanceRepository @Inject constructor(
+    private val apiService: AttendanceApiService,
+    private val mainApiService: ApiService
+) {
+    suspend fun getCurrentActivity(): Resource<ActiveActivity> {
+        return try {
+            val response = apiService.getCurrentActivity()
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error("Gagal mendapatkan kegiatan aktif")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Terjadi kesalahan")
+        }
+    }
 
     suspend fun checkIn(
         latitude: RequestBody,
@@ -19,74 +36,26 @@ class AttendanceRepository {
         accuracy: RequestBody,
         kegiatanId: RequestBody,
         selfie: MultipartBody.Part?
-    ): Resource<BaseResponse<Any>> = withContext(Dispatchers.IO) {
-        try {
-            val response = apiService.checkIn(latitude, longitude, accuracy, kegiatanId, selfie)
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    Resource.Success(body)
-                } else {
-                    Resource.Error("Respon kosong dari server")
-                }
+    ): Resource<BaseResponse<Any>> {
+        return try {
+            val response = mainApiService.checkIn(latitude, longitude, accuracy, kegiatanId, selfie)
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
             } else {
-                val errorMsg = parseErrorBody(response.errorBody()?.string(), response.code())
-                Resource.Error(errorMsg)
+                Resource.Error("Error: ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi")
         }
     }
 
-    suspend fun checkOut(request: CheckOutRequest): Resource<BaseResponse<Any>> = withContext(Dispatchers.IO) {
-        try {
-            val response = apiService.checkOut(request)
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    Resource.Success(body)
-                } else {
-                    Resource.Error("Respon kosong dari server")
-                }
+    suspend fun checkOut(request: CheckOutRequest): Resource<BaseResponse<Any>> {
+        return try {
+            val response = mainApiService.checkOut(request)
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
             } else {
-                val errorMsg = parseErrorBody(response.errorBody()?.string(), response.code())
-                Resource.Error(errorMsg)
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi")
-        }
-    }
-
-    suspend fun getTodayAttendance(): Resource<BaseResponse<Any>> = withContext(Dispatchers.IO) {
-        try {
-            val response = apiService.getTodayAttendance()
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    Resource.Success(body)
-                } else {
-                    Resource.Error("Respon kosong dari server")
-                }
-            } else {
-                Resource.Error("Gagal mengambil status hari ini: ${response.code()}")
-            }
-        } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi")
-        }
-    }
-
-    suspend fun getAttendanceHistory(): Resource<BaseResponse<List<Any>>> = withContext(Dispatchers.IO) {
-        try {
-            val response = apiService.getAttendanceHistory()
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    Resource.Success(body)
-                } else {
-                    Resource.Error("Respon kosong dari server")
-                }
-            } else {
-                Resource.Error("Gagal mengambil riwayat kehadiran: ${response.code()}")
+                Resource.Error("Error: ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi")
@@ -98,35 +67,42 @@ class AttendanceRepository {
         reason: RequestBody,
         type: RequestBody,
         document: MultipartBody.Part?
-    ): Resource<BaseResponse<Any>> = withContext(Dispatchers.IO) {
-        try {
-            val response = apiService.submitPermit(kegiatanId, reason, type, document)
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    Resource.Success(body)
-                } else {
-                    Resource.Error("Respon kosong dari server")
-                }
+    ): Resource<BaseResponse<Any>> {
+        return try {
+            val response = mainApiService.submitPermit(kegiatanId, reason, type, document)
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
             } else {
-                val errorMsg = parseErrorBody(response.errorBody()?.string(), response.code())
-                Resource.Error(errorMsg)
+                Resource.Error("Error: ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi")
         }
     }
 
-    private fun parseErrorBody(errorJson: String?, code: Int): String {
+    suspend fun getTodayAttendance(): Resource<BaseResponse<Any>> {
         return try {
-            if (errorJson != null) {
-                val jsonObject = org.json.JSONObject(errorJson)
-                jsonObject.getString("message")
+            val response = mainApiService.getTodayAttendance()
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
             } else {
-                "Gagal dengan kode: $code"
+                Resource.Error("Error: ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            "Gagal dengan kode: $code"
+            Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi")
+        }
+    }
+
+    suspend fun getAttendanceStatus(): Resource<AttendanceStatus> {
+        return try {
+            val response = apiService.getAttendanceStatus()
+            if (response.isSuccessful && response.body() != null) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error("Gagal mendapatkan status absensi")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage ?: "Terjadi kesalahan")
         }
     }
 }

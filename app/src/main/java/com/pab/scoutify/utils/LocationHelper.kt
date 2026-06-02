@@ -1,23 +1,52 @@
 package com.pab.scoutify.utils
 
-import kotlin.math.*
+import android.annotation.SuppressLint
+import android.content.Context
+import android.location.Location
+import android.os.Looper
+import com.google.android.gms.location.*
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object LocationHelper {
-    /**
-     * Calculates the distance between two points in meters using the Haversine formula.
-     */
-    fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val r = 6371e3 // Earth's radius in meters
-        val φ1 = Math.toRadians(lat1)
-        val φ2 = Math.toRadians(lat2)
-        val Δφ = Math.toRadians(lat2 - lat1)
-        val Δλ = Math.toRadians(lon2 - lon1)
+@Singleton
+class LocationHelper @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    private val fusedLocationClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(context)
 
-        val a = sin(Δφ / 2) * sin(Δφ / 2) +
-                cos(φ1) * cos(φ2) *
-                sin(Δλ / 2) * sin(Δλ / 2)
-        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    @SuppressLint("MissingPermission")
+    fun getLocationUpdates(intervalMillis: Long): Flow<Location> = callbackFlow {
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMillis)
+            .setMinUpdateIntervalMillis(intervalMillis / 2)
+            .build()
 
-        return r * c
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                result.lastLocation?.let { location ->
+                    trySend(location)
+                }
+            }
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+
+        awaitClose {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
+    }
+
+    fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+        val results = FloatArray(1)
+        Location.distanceBetween(lat1, lon1, lat2, lon2, results)
+        return results[0]
     }
 }

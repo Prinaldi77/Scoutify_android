@@ -84,15 +84,6 @@ interface ApiService {
     @GET("anggota/{id}")
     suspend fun getMemberDetail(@Path("id") id: Int): Response<BaseResponse<MemberDetail>>
 
-    @POST("anggota")
-    suspend fun createAnggota(@Body anggota: com.pab.scoutify.model.Anggota): Response<BaseResponse<com.pab.scoutify.model.Anggota>>
-
-    @PUT("anggota/{id}")
-    suspend fun updateAnggota(
-        @Path("id") id: Int,
-        @Body anggota: com.pab.scoutify.model.Anggota
-    ): Response<BaseResponse<com.pab.scoutify.model.Anggota>>
-
     @PUT("anggota/{id}/reset-password")
     suspend fun resetMemberPassword(@Path("id") id: Int): Response<BaseResponse<Any>>
 
@@ -101,7 +92,7 @@ interface ApiService {
     suspend fun getProfile(): Response<BaseResponse<ProfileData>>
 
     @PUT("profile")
-    suspend fun updateProfile(@Body request: com.pab.scoutify.model.request.UpdateProfileRequest): Response<BaseResponse<ProfileData>>
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): Response<BaseResponse<ProfileData>>
 
     @Multipart
     @POST("profile/avatar")

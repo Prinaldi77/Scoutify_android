@@ -1,7 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.compose.compiler)
     id("androidx.navigation.safeargs.kotlin")
+    id("kotlin-kapt")
 }
 
 android {
@@ -19,13 +22,12 @@ android {
 
     buildTypes {
         debug {
-            // URL untuk testing lokal via loopback emulator
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3000/api/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.137.1:3000/api/\"")
+
         }
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // URL Server Production
             buildConfigField("String", "BASE_URL", "\"https://scoutify.my.id/api/\"")
         }
     }
@@ -39,11 +41,12 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        compose = true
     }
 
     packaging {
-        jniLibs {
-            useLegacyPackaging = false
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
 }
@@ -63,13 +66,14 @@ dependencies {
     // Security
     implementation(libs.androidx.security.crypto)
 
-    // Navigation Component
+    // Navigation Component (XML)
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)
 
     // GPS & Maps
     implementation(libs.play.services.location)
     implementation(libs.play.services.maps)
+    implementation(libs.maps.compose)
 
     // Network
     implementation(libs.retrofit)
@@ -79,11 +83,13 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Image Loading
     implementation(libs.coil)
+    implementation(libs.coil.compose)
 
-    // UI Components
+    // UI Components (XML)
     implementation(libs.shimmer)
     implementation(libs.swiperefreshlayout)
     implementation(libs.lottie)
@@ -94,10 +100,36 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
 
+    // ML Kit
+    implementation(libs.mlkit.face.detection)
+
     // Biometric
     implementation(libs.biometric)
+
+    // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // DataStore
+    implementation(libs.androidx.datastore.preferences)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 }

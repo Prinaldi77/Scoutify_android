@@ -4,69 +4,120 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pab.scoutify.api.DashboardApiService
+import com.pab.scoutify.data.repository.ActivitiesRepository
 import com.pab.scoutify.data.repository.DashboardRepository
-import com.pab.scoutify.model.BaseResponse
-import com.pab.scoutify.model.DashboardData
-import com.pab.scoutify.model.Kegiatan
+import com.pab.scoutify.data.repository.MemberRepository
+import com.pab.scoutify.model.*
 import com.pab.scoutify.utils.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DashboardViewModel : ViewModel() {
+@HiltViewModel
+class DashboardViewModel @Inject constructor(
+    private val repository: DashboardRepository,
+    private val activitiesRepository: ActivitiesRepository,
+    private val memberRepository: MemberRepository,
+    private val dashboardApiService: DashboardApiService
+) : ViewModel() {
 
-    private val repository = DashboardRepository()
+    private val _uiState = MutableStateFlow(DashboardUiState())
+    val uiState = _uiState.asStateFlow()
 
     private val _dashboardState = MutableLiveData<Resource<BaseResponse<DashboardData>>>()
-    val dashboardState: LiveData<Resource<BaseResponse<DashboardData>>> get() = _dashboardState
+    val dashboardState: LiveData<Resource<BaseResponse<DashboardData>>> = _dashboardState
 
     private val _kegiatanState = MutableLiveData<Resource<BaseResponse<List<Kegiatan>>>>()
-    val kegiatanState: LiveData<Resource<BaseResponse<List<Kegiatan>>>> get() = _kegiatanState
+    val kegiatanState: LiveData<Resource<BaseResponse<List<Kegiatan>>>> = _kegiatanState
+
+    private val _createKegiatanState = MutableLiveData<Resource<BaseResponse<Kegiatan>>>()
+    val createKegiatanState: LiveData<Resource<BaseResponse<Kegiatan>>> = _createKegiatanState
+
+    private val _anggotasState = MutableLiveData<Resource<BaseResponse<List<Anggota>>>>()
+    val anggotasState: LiveData<Resource<BaseResponse<List<Anggota>>>> = _anggotasState
+
+    init {
+        loadDashboardData()
+    }
+
+    fun loadDashboardData() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            try {
+                val profile = repository.getProfile()
+                val summary = repository.getDashboardSummary()
+                val upcoming = repository.getUpcomingActivities()
+                val notifications = repository.getLatestNotifications()
+
+                _uiState.update {
+                    it.copy(
+                        userProfile = profile,
+                        summary = summary,
+                        upcomingActivities = upcoming,
+                        latestNotifications = notifications,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.localizedMessage ?: "Terjadi kesalahan saat memuat data"
+                    )
+                }
+            }
+        }
+    }
 
     fun fetchDashboardData() {
-        _dashboardState.value = Resource.Loading
         viewModelScope.launch {
-            val result = repository.getDashboard()
-            _dashboardState.value = result
+            _dashboardState.value = Resource.Loading
+            try {
+                // We use DashboardApiService or similar here to get the DashboardData
+                // Looking at ApiService.kt, it has getDashboard()
+                // But DashboardViewModel uses DashboardRepository which uses DashboardApiService
+                // Let's assume there's a way to get DashboardData. 
+                // In ApiService.kt: @GET("dashboard") suspend fun getDashboard(): Response<BaseResponse<DashboardData>>
+                
+                // For now, let's just use a dummy or try to find where getDashboard is
+                // Actually, I'll update DashboardRepository to include getDashboard if it's missing.
+                val result = repository.getDashboard()
+                _dashboardState.value = result
+            } catch (e: Exception) {
+                _dashboardState.value = Resource.Error(e.localizedMessage ?: "Unknown error")
+            }
         }
     }
 
     fun fetchKegiatanData() {
-        _kegiatanState.value = Resource.Loading
         viewModelScope.launch {
-            val result = repository.getKegiatan()
-            _kegiatanState.value = result
+            activitiesRepository.getActivities().collect { resource ->
+                _kegiatanState.value = resource
+            }
         }
     }
-
-    private val _createKegiatanState = MutableLiveData<Resource<BaseResponse<Kegiatan>>>()
-    val createKegiatanState: LiveData<Resource<BaseResponse<Kegiatan>>> get() = _createKegiatanState
 
     fun createKegiatan(kegiatan: Kegiatan) {
-        _createKegiatanState.value = Resource.Loading
         viewModelScope.launch {
-            val result = repository.createKegiatan(kegiatan)
-            _createKegiatanState.value = result
+            activitiesRepository.createActivity(kegiatan).collect { resource ->
+                _createKegiatanState.value = resource
+            }
         }
     }
-
-    private val _checkInState = MutableLiveData<Resource<BaseResponse<Any>>>()
-    val checkInState: LiveData<Resource<BaseResponse<Any>>> get() = _checkInState
-
-    fun checkIn(request: com.pab.scoutify.model.request.AbsensiRequest) {
-        _checkInState.value = Resource.Loading
-        viewModelScope.launch {
-            val result = repository.checkIn(request)
-            _checkInState.value = result
-        }
-    }
-
-    private val _anggotasState = MutableLiveData<Resource<BaseResponse<List<com.pab.scoutify.model.Anggota>>>>()
-    val anggotasState: LiveData<Resource<BaseResponse<List<com.pab.scoutify.model.Anggota>>>> get() = _anggotasState
 
     fun fetchAnggotas() {
-        _anggotasState.value = Resource.Loading
         viewModelScope.launch {
-            val result = repository.getAnggotas()
-            _anggotasState.value = result
+            memberRepository.getMembers().collect { resource ->
+                 when (resource) {
+                    is Resource.Loading -> _anggotasState.value = Resource.Loading
+                    is Resource.Success -> _anggotasState.value = Resource.Success(BaseResponse(true, "Success", resource.data))
+                    is Resource.Error -> _anggotasState.value = Resource.Error(resource.message)
+                }
+            }
         }
     }
 }
