@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_dashboard"
+        android:title="Beranda" />
+    <item
+        android:id="@+id/nav_presensi"
+        android:icon="@drawable/ic_attendance"
+        android:title="Presensi" />
+    <item
+        android:id="@+id/nav_kegiatan"
+        android:icon="@drawable/ic_calendar"
+        android:title="Kegiatan" />
+    <item
+        android:id="@+id/nav_pesan"
+        android:icon="@drawable/ic_announcement"
+        android:title="Pesan" />
+    <item
+        android:id="@+id/nav_profil"
+        android:icon="@drawable/ic_person"
+        android:title="Profil" />
+</menu>
