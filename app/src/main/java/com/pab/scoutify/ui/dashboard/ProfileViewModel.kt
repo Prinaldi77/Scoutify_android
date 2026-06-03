@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.pab.scoutify.data.repository.ProfileRepository
 import com.pab.scoutify.model.ChangePasswordRequest
 import com.pab.scoutify.model.ProfileUiState
-import com.pab.scoutify.model.UpdateProfileRequest
+import com.pab.scoutify.model.request.UpdateProfileRequest
 import com.pab.scoutify.ui.auth.SessionManager
 import com.pab.scoutify.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,10 +41,11 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             when (val result = repository.getProfile()) {
-                is Resource.Success -> {
-                    _uiState.update { it.copy(profile = result.data, isLoading = false) }
+                is Resource.Success<*> -> {
+                    val data = result.data as com.pab.scoutify.model.ProfileData
+                    _uiState.update { it.copy(profile = data, isLoading = false) }
                     // Update local session
-                    result.data.let {
+                    data.let {
                         sessionManager.saveUserName(it.name)
                         sessionManager.saveUserEmail(it.email)
                         sessionManager.savePhotoUrl(it.avatar)
@@ -62,10 +63,17 @@ class ProfileViewModel @Inject constructor(
     fun updateProfile(fullName: String, phoneNumber: String, email: String, address: String?) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val request = UpdateProfileRequest(fullName, phoneNumber, email, address)
+            // Corrected to use model.request.UpdateProfileRequest with named parameters
+            val request = UpdateProfileRequest(
+                fullName = fullName,
+                phoneNumber = phoneNumber,
+                email = email,
+                address = address
+            )
             when (val result = repository.updateProfile(request)) {
-                is Resource.Success -> {
-                    _uiState.update { it.copy(profile = result.data, updateSuccess = true, isLoading = false) }
+                is Resource.Success<*> -> {
+                    val data = result.data as com.pab.scoutify.model.ProfileData
+                    _uiState.update { it.copy(profile = data, updateSuccess = true, isLoading = false) }
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(errorMessage = result.message, isLoading = false) }
@@ -83,9 +91,10 @@ class ProfileViewModel @Inject constructor(
             val body = MultipartBody.Part.createFormData("photo", file.name, requestFile)
 
             when (val result = repository.uploadPhoto(body)) {
-                is Resource.Success -> {
-                    _uiState.update { it.copy(profile = result.data, isLoading = false) }
-                    sessionManager.savePhotoUrl(result.data.avatar)
+                is Resource.Success<*> -> {
+                    val data = result.data as com.pab.scoutify.model.ProfileData
+                    _uiState.update { it.copy(profile = data, isLoading = false) }
+                    sessionManager.savePhotoUrl(data.avatar)
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(errorMessage = result.message, isLoading = false) }
@@ -99,7 +108,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             when (val result = repository.changePassword(request)) {
-                is Resource.Success -> {
+                is Resource.Success<*> -> {
                     _uiState.update { it.copy(updateSuccess = true, isLoading = false) }
                 }
                 is Resource.Error -> {
@@ -114,7 +123,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             when (repository.logout()) {
-                is Resource.Success -> {
+                is Resource.Success<*> -> {
                     sessionManager.logout()
                     _uiState.update { it.copy(logoutSuccess = true, isLoading = false) }
                 }

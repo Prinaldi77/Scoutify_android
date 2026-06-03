@@ -5,11 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pab.scoutify.data.repository.AttendanceRepository
+import com.pab.scoutify.model.ActiveActivity
+import com.pab.scoutify.model.AttendanceStatus
 import com.pab.scoutify.model.AttendanceUiState
 import com.pab.scoutify.model.BaseResponse
-import com.pab.scoutify.model.CheckInRequest
 import com.pab.scoutify.model.UserLocation
-import com.pab.scoutify.model.request.CheckOutRequest
 import com.pab.scoutify.utils.GeofenceHelper
 import com.pab.scoutify.utils.LocationHelper
 import com.pab.scoutify.utils.Resource
@@ -35,19 +35,9 @@ class AttendanceViewModel @Inject constructor(
     private val _checkInState = MutableLiveData<Resource<BaseResponse<Any>>>()
     val checkInState: LiveData<Resource<BaseResponse<Any>>> = _checkInState
 
-    private val _checkOutState = MutableLiveData<Resource<BaseResponse<Any>>>()
-    val checkOutState: LiveData<Resource<BaseResponse<Any>>> = _checkOutState
-
-    private val _todayState = MutableLiveData<Resource<BaseResponse<Any>>>()
-    val todayState: LiveData<Resource<BaseResponse<Any>>> = _todayState
-
-    private val _permitState = MutableLiveData<Resource<BaseResponse<Any>>>()
-    val permitState: LiveData<Resource<BaseResponse<Any>>> = _permitState
-
     init {
         loadInitialData()
         startLocationUpdates()
-        fetchTodayAttendance()
     }
 
     fun loadInitialData() {
@@ -57,12 +47,16 @@ class AttendanceViewModel @Inject constructor(
             val activityResource = repository.getCurrentActivity()
             val statusResource = repository.getAttendanceStatus()
 
-            if (activityResource is Resource.Success) {
-                _uiState.update { it.copy(activeActivity = activityResource.data) }
+            if (activityResource is Resource.Success<ActiveActivity>) {
+                val data = activityResource.data
+                _uiState.update { state -> state.copy(activeActivity = data) }
+                // Trigger radius check immediately if location already exists
+                _uiState.value.userLocation?.let { loc -> validateRadius(data, loc) }
             }
             
-            if (statusResource is Resource.Success) {
-                _uiState.update { it.copy(attendanceStatus = statusResource.data.status) }
+            if (statusResource is Resource.Success<AttendanceStatus>) {
+                val data = statusResource.data
+                _uiState.update { state -> state.copy(attendanceStatus = data.status) }
             }
 
             _uiState.update { it.copy(isLoading = false) }
@@ -74,14 +68,12 @@ class AttendanceViewModel @Inject constructor(
             .onEach { location ->
                 val userLoc = UserLocation(location.latitude, location.longitude, location.accuracy)
                 _uiState.update { it.copy(userLocation = userLoc) }
-                validateRadius(userLoc)
+                _uiState.value.activeActivity?.let { validateRadius(it, userLoc) }
             }
             .launchIn(viewModelScope)
     }
 
-    private fun validateRadius(userLocation: UserLocation) {
-        val activity = _uiState.value.activeActivity ?: return
-        
+    private fun validateRadius(activity: ActiveActivity, userLocation: UserLocation) {
         val distance = geofenceHelper.getDistance(
             userLocation.latitude,
             userLocation.longitude,
@@ -96,26 +88,6 @@ class AttendanceViewModel @Inject constructor(
                 isWithinRadius = isWithin,
                 distance = distance.toDouble()
             )
-        }
-    }
-
-    fun checkIn(
-        latitude: RequestBody,
-        longitude: RequestBody,
-        accuracy: RequestBody,
-        kegiatanId: RequestBody,
-        selfie: MultipartBody.Part?
-    ) {
-        viewModelScope.launch {
-            _checkInState.value = Resource.Loading
-            val result = repository.checkIn(latitude, longitude, accuracy, kegiatanId, selfie)
-            _checkInState.value = result
-            if (result is Resource.Success) {
-                _uiState.update { it.copy(checkInSuccess = true) }
-                refreshAttendanceStatus()
-            } else if (result is Resource.Error) {
-                _uiState.update { it.copy(errorMessage = result.message) }
-            }
         }
     }
 
@@ -139,7 +111,7 @@ class AttendanceViewModel @Inject constructor(
             val result = repository.checkIn(latBody, lngBody, accBody, kegiatanIdBody, null)
             _checkInState.value = result
             if (result is Resource.Success) {
-                _uiState.update { it.copy(checkInSuccess = true) }
+                _uiState.update { it.copy(checkInSuccess = true, attendanceStatus = "Sudah Check In") }
                 refreshAttendanceStatus()
             } else if (result is Resource.Error) {
                 _uiState.update { it.copy(errorMessage = result.message) }
@@ -147,37 +119,12 @@ class AttendanceViewModel @Inject constructor(
         }
     }
 
-    fun checkOut(request: CheckOutRequest) {
-        viewModelScope.launch {
-            _checkOutState.value = Resource.Loading
-            _checkOutState.value = repository.checkOut(request)
-        }
-    }
-
-    fun submitPermit(
-        kegiatanId: RequestBody,
-        reason: RequestBody,
-        type: RequestBody,
-        document: MultipartBody.Part?
-    ) {
-        viewModelScope.launch {
-            _permitState.value = Resource.Loading
-            _permitState.value = repository.submitPermit(kegiatanId, reason, type, document)
-        }
-    }
-
-    fun fetchTodayAttendance() {
-        viewModelScope.launch {
-            _todayState.value = Resource.Loading
-            _todayState.value = repository.getTodayAttendance()
-        }
-    }
-
     fun refreshAttendanceStatus() {
         viewModelScope.launch {
             val statusResource = repository.getAttendanceStatus()
-            if (statusResource is Resource.Success) {
-                _uiState.update { it.copy(attendanceStatus = statusResource.data.status) }
+            if (statusResource is Resource.Success<AttendanceStatus>) {
+                val data = statusResource.data
+                _uiState.update { state -> state.copy(attendanceStatus = data.status) }
             }
         }
     }

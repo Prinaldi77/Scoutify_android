@@ -9,12 +9,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -34,7 +34,7 @@ class DashboardActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         setContent {
             MaterialTheme(
                 colorScheme = lightColorScheme(
@@ -44,24 +44,34 @@ class DashboardActivity : ComponentActivity() {
                 )
             ) {
                 val navController = rememberNavController()
-                val items = listOf(
-                    BottomNavItem("Home", "home", Icons.Default.Home),
-                    BottomNavItem("Activities", "activities", Icons.AutoMirrored.Filled.List),
-                    BottomNavItem("Attendance", "attendance", Icons.AutoMirrored.Filled.Assignment),
-                    BottomNavItem("Profile", "profile", Icons.Default.AccountCircle)
-                )
+                val userRole = sessionManager.getRole().lowercase()
+
+                // Role-based Menu Items
+                val items = if (userRole == "pembina" || userRole == "admin") {
+                    listOf(
+                        BottomNavItem("Beranda", "home", Icons.Default.Home),
+                        BottomNavItem("Anggota", "management", Icons.Default.Groups),
+                        BottomNavItem("Laporan", "reports", Icons.Default.Assessment),
+                        BottomNavItem("Profil", "profile", Icons.Default.Person)
+                    )
+                } else {
+                    listOf(
+                        BottomNavItem("Beranda", "home", Icons.Default.Home),
+                        BottomNavItem("Kegiatan", "activities", Icons.AutoMirrored.Filled.List),
+                        BottomNavItem("Presensi", "attendance", Icons.AutoMirrored.Filled.Assignment),
+                        BottomNavItem("Profil", "profile", Icons.Default.Person)
+                    )
+                }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         val navBackStackEntry by navController.currentBackStackEntryAsState()
                         val currentDestination = navBackStackEntry?.destination
-                        
-                        // Sembunyikan bottom bar jika berada di layar notifikasi atau detail lainnya jika perlu
                         val showBottomBar = items.any { it.route == currentDestination?.route }
-                        
+
                         if (showBottomBar) {
-                            NavigationBar(containerColor = Color.White) {
+                            NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
                                 items.forEach { item ->
                                     NavigationBarItem(
                                         icon = { Icon(item.icon, contentDescription = item.label) },
@@ -78,7 +88,6 @@ class DashboardActivity : ComponentActivity() {
                                         },
                                         colors = NavigationBarItemDefaults.colors(
                                             selectedIconColor = Color(0xFF1B4332),
-                                            selectedTextColor = Color(0xFF1B4332),
                                             indicatorColor = Color(0xFFFFD8B1).copy(alpha = 0.5f)
                                         )
                                     )
@@ -94,37 +103,44 @@ class DashboardActivity : ComponentActivity() {
                     ) {
                         composable("home") {
                             DashboardScreen(
-                                onNavigateToAttendance = { _ ->
-                                    navController.navigate("attendance")
-                                },
-                                onNavigateToNotifications = {
-                                    navController.navigate("notifications")
-                                }
+                                onNavigateToAttendance = { _ -> navController.navigate("attendance") },
+                                onNavigateToActivities = { navController.navigate("activities") },
+                                onNavigateToNotifications = { navController.navigate("notifications") },
+                                onNavigateToManagement = { navController.navigate("management") }
                             )
                         }
                         composable("activities") {
                             ActivitiesScreen(
-                                onNavigateToDetail = { /* Navigate to activity detail */ },
-                                onNotificationClick = {
-                                    navController.navigate("notifications")
-                                }
+                                onNavigateToDetail = { },
+                                onNotificationClick = { navController.navigate("notifications") }
                             )
                         }
                         composable("attendance") {
                             AttendanceScreen(
-                                onNavigateToNotifications = {
-                                    navController.navigate("notifications")
-                                }
+                                onNavigateToNotifications = { navController.navigate("notifications") }
+                            )
+                        }
+                        composable("management") {
+                            ManagementScreen(
+                                onMenuClick = { /* Optional */ },
+                                onSearchClick = { /* Optional */ },
+                                onAddMemberClick = { /* Navigate to add member */ }
+                            )
+                        }
+                        composable("reports") {
+                            AttendanceReportScreen(
+                                onMenuClick = { /* Optional */ },
+                                onSearchClick = { /* Optional */ },
+                                onProfileClick = { navController.navigate("profile") }
                             )
                         }
                         composable("profile") {
                             ProfileScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                },
-                                onEditProfile = { /* Navigate to edit profile */ },
-                                onChangePassword = { /* Navigate to change password */ },
+                                onNavigateBack = { navController.popBackStack() },
+                                onEditProfile = { },
+                                onChangePassword = { },
                                 onLogoutSuccess = {
+                                    sessionManager.clearSession()
                                     val intent = Intent(this@DashboardActivity, LoginActivity::class.java)
                                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                     startActivity(intent)
@@ -133,11 +149,7 @@ class DashboardActivity : ComponentActivity() {
                             )
                         }
                         composable("notifications") {
-                            NotificationsScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                }
-                            )
+                            NotificationsScreen(onNavigateBack = { navController.popBackStack() })
                         }
                     }
                 }

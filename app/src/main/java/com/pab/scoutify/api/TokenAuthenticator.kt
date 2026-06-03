@@ -40,7 +40,7 @@ class TokenAuthenticator(private val context: Context) : Authenticator {
                     val refreshResponse = tempService.refreshToken(RefreshTokenRequest(refreshToken))
                     // LoginResponse contains 'tokens' directly, not inside a 'data' field
                     if (refreshResponse.isSuccessful && refreshResponse.body()?.success == true) {
-                        refreshResponse.body()?.tokens
+                        refreshResponse.body()?.data?.tokens
                     } else {
                         null
                     }

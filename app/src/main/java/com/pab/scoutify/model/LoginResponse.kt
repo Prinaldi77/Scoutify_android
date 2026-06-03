@@ -5,10 +5,17 @@ import com.google.gson.annotations.SerializedName
 data class LoginResponse(
     @SerializedName("success") val success: Boolean?,
     @SerializedName("message") val message: String?,
-    // Jika backend mengirim user & tokens langsung di luar, pakai ini:
     @SerializedName("user") val user: User?,
-    @SerializedName("tokens") val tokens: Tokens?
-)
+    @SerializedName("tokens") val tokens: Tokens?,
+    
+    // Support untuk format "Flat JSON" (token langsung di level atas)
+    @SerializedName("accessToken") val accessTokenDirect: String?,
+    @SerializedName("access_token") val accessTokenSnake: String?,
+    @SerializedName("token") val tokenSimple: String?
+) {
+    // Helper untuk mengambil token dari field mana pun yang tersedia
+    val anyToken: String? get() = tokens?.accessToken ?: accessTokenDirect ?: accessTokenSnake ?: tokenSimple
+}
 
 data class Tokens(
     @SerializedName("accessToken") val accessToken: String?,
@@ -16,7 +23,7 @@ data class Tokens(
 )
 
 data class User(
-    @SerializedName("id") val id: Any?, // Gunakan Any? karena tadi ada urusan BigInt
+    @SerializedName("id") val id: Any?,
     @SerializedName("name") val name: String?,
     @SerializedName("email") val email: String?,
     @SerializedName("role") val role: String?,

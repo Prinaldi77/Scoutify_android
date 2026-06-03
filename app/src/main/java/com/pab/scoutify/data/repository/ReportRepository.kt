@@ -1,9 +1,7 @@
 package com.pab.scoutify.data.repository
 
 import com.pab.scoutify.api.ApiService
-import com.pab.scoutify.model.ActivityParticipation
-import com.pab.scoutify.model.AttendanceReportSummary
-import com.pab.scoutify.model.ScoutParticipation
+import com.pab.scoutify.model.*
 import com.pab.scoutify.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -14,33 +12,30 @@ import javax.inject.Singleton
 class ReportRepository @Inject constructor(
     private val apiService: ApiService
 ) {
-    fun getAttendanceSummary(dateRange: String, troop: String): Flow<Resource<AttendanceReportSummary>> = flow {
+    fun getAttendanceSummary(dateRange: String?, troop: String?): Flow<Resource<AttendanceReportSummary>> = flow {
         emit(Resource.Loading)
         try {
             val response = apiService.getAttendanceSummary(dateRange, troop)
-            if (response.isSuccessful) {
-                val data = response.body()?.data
-                if (data != null) {
-                    emit(Resource.Success(data))
-                } else {
-                    emit(Resource.Error("Data ringkasan tidak ditemukan"))
-                }
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                emit(Resource.Success(body.data))
             } else {
-                emit(Resource.Error("Gagal memuat ringkasan kehadiran"))
+                emit(Resource.Error(body?.message ?: "Gagal memuat ringkasan"))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan"))
         }
     }
 
-    fun getReportActivities(dateRange: String, troop: String): Flow<Resource<List<ActivityParticipation>>> = flow {
+    fun getReportActivities(dateRange: String?, troop: String?): Flow<Resource<List<ActivityParticipation>>> = flow {
         emit(Resource.Loading)
         try {
             val response = apiService.getReportActivities(dateRange, troop)
-            if (response.isSuccessful) {
-                emit(Resource.Success(response.body()?.data ?: emptyList()))
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                emit(Resource.Success(body.data))
             } else {
-                emit(Resource.Error("Gagal memuat riwayat aktivitas"))
+                emit(Resource.Error(body?.message ?: "Gagal memuat aktivitas"))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan"))
@@ -51,10 +46,11 @@ class ReportRepository @Inject constructor(
         emit(Resource.Loading)
         try {
             val response = apiService.getTopScouts()
-            if (response.isSuccessful) {
-                emit(Resource.Success(response.body()?.data ?: emptyList()))
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                emit(Resource.Success(body.data))
             } else {
-                emit(Resource.Error("Gagal memuat leaderboard"))
+                emit(Resource.Error(body?.message ?: "Gagal memuat leaderboard"))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan"))

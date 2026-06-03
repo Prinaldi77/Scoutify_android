@@ -12,12 +12,12 @@ class DashboardRepository @Inject constructor(
 ) {
     suspend fun getProfile(): ProfileData? {
         val response = apiService.getProfile()
-        return if (response.isSuccessful) response.body() else null
+        return if (response.isSuccessful) response.body()?.data else null
     }
 
     suspend fun getDashboardSummary(): DashboardSummary? {
         val response = apiService.getDashboardSummary()
-        return if (response.isSuccessful) response.body() else null
+        return if (response.isSuccessful) response.body()?.data else null
     }
 
     suspend fun getUpcomingActivities(): List<UpcomingActivity> {
@@ -36,7 +36,7 @@ class DashboardRepository @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 Resource.Success(response.body()!!)
             } else {
-                Resource.Error("Gagal memuat dashboard: ${response.message()}")
+                Resource.Error("Gagal memuat dashboard")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan")

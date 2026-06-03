@@ -1,8 +1,7 @@
 package com.pab.scoutify.data.repository
 
 import com.pab.scoutify.api.ApiService
-import com.pab.scoutify.model.Anggota
-import com.pab.scoutify.model.MemberDetail
+import com.pab.scoutify.model.*
 import com.pab.scoutify.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,18 +16,14 @@ class MemberRepository @Inject constructor(
         emit(Resource.Loading)
         try {
             val response = apiService.getAnggotas()
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    emit(Resource.Success(body.data))
-                } else {
-                    emit(Resource.Error("Empty response body"))
-                }
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                emit(Resource.Success(body.data))
             } else {
-                emit(Resource.Error("Error: ${response.code()} ${response.message()}"))
+                emit(Resource.Error(body?.message ?: "Gagal memuat daftar anggota"))
             }
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Unknown error"))
+            emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan"))
         }
     }
 
@@ -36,15 +31,11 @@ class MemberRepository @Inject constructor(
         emit(Resource.Loading)
         try {
             val response = apiService.getMemberDetail(id)
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    emit(Resource.Success(body.data))
-                } else {
-                    emit(Resource.Error("Data detail tidak ditemukan"))
-                }
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                emit(Resource.Success(body.data))
             } else {
-                emit(Resource.Error("Gagal memuat detail member"))
+                emit(Resource.Error(body?.message ?: "Data detail tidak ditemukan"))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan"))
@@ -55,15 +46,11 @@ class MemberRepository @Inject constructor(
         emit(Resource.Loading)
         try {
             val response = apiService.createAnggota(anggota)
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null && body.data != null) {
-                    emit(Resource.Success(body.data))
-                } else {
-                    emit(Resource.Error("Gagal menyimpan data: Respons kosong"))
-                }
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                emit(Resource.Success(body.data))
             } else {
-                emit(Resource.Error("Error: ${response.code()} ${response.message()}"))
+                emit(Resource.Error(body?.message ?: "Gagal menyimpan data"))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi"))
@@ -74,15 +61,11 @@ class MemberRepository @Inject constructor(
         emit(Resource.Loading)
         try {
             val response = apiService.updateAnggota(id, anggota)
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null && body.data != null) {
-                    emit(Resource.Success(body.data))
-                } else {
-                    emit(Resource.Error("Gagal memperbarui data: Respons kosong"))
-                }
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                emit(Resource.Success(body.data))
             } else {
-                emit(Resource.Error("Error: ${response.code()} ${response.message()}"))
+                emit(Resource.Error(body?.message ?: "Gagal memperbarui data"))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi"))
@@ -92,10 +75,11 @@ class MemberRepository @Inject constructor(
     suspend fun resetPassword(id: Int): Resource<Any> {
         return try {
             val response = apiService.resetMemberPassword(id)
-            if (response.isSuccessful) {
-                Resource.Success(Unit)
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                Resource.Success(body.data ?: Unit)
             } else {
-                Resource.Error("Gagal mereset password")
+                Resource.Error(body?.message ?: "Gagal mereset password")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan")

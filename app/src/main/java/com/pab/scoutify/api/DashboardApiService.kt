@@ -6,10 +6,10 @@ import retrofit2.http.GET
 
 interface DashboardApiService {
     @GET("profile/me")
-    suspend fun getProfile(): Response<ProfileData>
+    suspend fun getProfile(): Response<BaseResponse<ProfileData>>
 
     @GET("dashboard/summary")
-    suspend fun getDashboardSummary(): Response<DashboardSummary>
+    suspend fun getDashboardSummary(): Response<BaseResponse<DashboardSummary>>
 
     @GET("activities/upcoming")
     suspend fun getUpcomingActivities(): Response<BaseResponse<List<UpcomingActivity>>>

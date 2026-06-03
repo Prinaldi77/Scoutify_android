@@ -2,12 +2,7 @@ package com.pab.scoutify.model
 
 import com.google.gson.annotations.SerializedName
 
-data class UpdateProfileRequest(
-    val fullName: String,
-    val phoneNumber: String,
-    val email: String,
-    val address: String? = null
-)
+// UpdateProfileRequest has been moved to com.pab.scoutify.model.request.UpdateProfileRequest
 
 data class ChangePasswordRequest(
     val currentPassword: String,

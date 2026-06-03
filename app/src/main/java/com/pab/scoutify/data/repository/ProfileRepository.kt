@@ -1,7 +1,10 @@
 package com.pab.scoutify.data.repository
 
 import com.pab.scoutify.api.ProfileApiService
-import com.pab.scoutify.model.*
+import com.pab.scoutify.model.BaseResponse
+import com.pab.scoutify.model.ChangePasswordRequest
+import com.pab.scoutify.model.ProfileData
+import com.pab.scoutify.model.request.UpdateProfileRequest
 import com.pab.scoutify.utils.Resource
 import okhttp3.MultipartBody
 import javax.inject.Inject
@@ -14,10 +17,11 @@ class ProfileRepository @Inject constructor(
     suspend fun getProfile(): Resource<ProfileData> {
         return try {
             val response = apiService.getProfile()
-            if (response.isSuccessful && response.body() != null) {
-                Resource.Success(response.body()!!)
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                Resource.Success(body.data)
             } else {
-                Resource.Error("Gagal mengambil data profil")
+                Resource.Error(body?.message ?: "Gagal mengambil data profil")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan")
@@ -27,10 +31,11 @@ class ProfileRepository @Inject constructor(
     suspend fun updateProfile(request: UpdateProfileRequest): Resource<ProfileData> {
         return try {
             val response = apiService.updateProfile(request)
-            if (response.isSuccessful && response.body() != null) {
-                Resource.Success(response.body()!!.data)
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                Resource.Success(body.data)
             } else {
-                Resource.Error(response.body()?.message ?: "Gagal memperbarui profil")
+                Resource.Error(body?.message ?: "Gagal memperbarui profil")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan")
@@ -40,10 +45,11 @@ class ProfileRepository @Inject constructor(
     suspend fun uploadPhoto(photo: MultipartBody.Part): Resource<ProfileData> {
         return try {
             val response = apiService.uploadPhoto(photo)
-            if (response.isSuccessful && response.body() != null) {
-                Resource.Success(response.body()!!.data)
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                Resource.Success(body.data)
             } else {
-                Resource.Error(response.body()?.message ?: "Gagal mengunggah foto")
+                Resource.Error(body?.message ?: "Gagal mengunggah foto")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan")
@@ -53,10 +59,11 @@ class ProfileRepository @Inject constructor(
     suspend fun changePassword(request: ChangePasswordRequest): Resource<Any> {
         return try {
             val response = apiService.changePassword(request)
-            if (response.isSuccessful) {
-                Resource.Success(Unit)
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                Resource.Success(body.data ?: Unit)
             } else {
-                Resource.Error("Gagal mengubah kata sandi")
+                Resource.Error(body?.message ?: "Gagal mengubah kata sandi")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan")
@@ -66,10 +73,11 @@ class ProfileRepository @Inject constructor(
     suspend fun logout(): Resource<Any> {
         return try {
             val response = apiService.logout()
-            if (response.isSuccessful) {
-                Resource.Success(Unit)
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                Resource.Success(body.data ?: Unit)
             } else {
-                Resource.Error("Gagal logout")
+                Resource.Error(body?.message ?: "Gagal logout")
             }
         } catch (e: Exception) {
             Resource.Error(e.localizedMessage ?: "Terjadi kesalahan")

@@ -22,7 +22,8 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://192.168.137.1:3000/api/\"")
+            // Perbaikan: Menghapus spasi setelah http://
+            buildConfigField("String", "BASE_URL", "\"http://192.168.1.44:3000/api/\"")
 
         }
         release {
