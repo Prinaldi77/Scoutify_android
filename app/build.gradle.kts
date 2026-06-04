@@ -22,9 +22,7 @@ android {
 
     buildTypes {
         debug {
-            // Perbaikan: Menghapus spasi setelah http://
-            buildConfigField("String", "BASE_URL", "\"http://localhost:3000/api/\"")
-
+            buildConfigField("String", "BASE_URL", "\"https://scoutify.my.id/api/\"")
         }
         release {
             isMinifyEnabled = true
