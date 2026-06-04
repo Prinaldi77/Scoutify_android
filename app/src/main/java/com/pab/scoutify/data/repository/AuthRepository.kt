@@ -22,85 +22,47 @@ class AuthRepository {
         try {
             val response = apiService.login(loginRequest)
             
-            // 1. Ambil JSON mentah (Hanya baca sekali agar tidak error)
-            val rawJson = if (response.isSuccessful) {
-                gson.toJson(response.body())
-            } else {
-                response.errorBody()?.string() ?: ""
-            }
-
-            Log.d("AUTH_DEBUG", "Raw JSON Response: $rawJson")
-
-            if (rawJson.isEmpty() || rawJson == "null") {
-                return@withContext Resource.Error("Server tidak memberikan respon (Status: ${response.code()})")
-            }
-
-            val jsonObject = try { JSONObject(rawJson) } catch (e: Exception) { null }
-            
-            // 2. Cari pesan sukses/gagal di berbagai field
-            val message = jsonObject?.let {
-                it.optString("message", "")
-                    .ifEmpty { it.optString("msg", "") }
-                    .ifEmpty { it.optJSONObject("data")?.optString("message", "") ?: "" }
-            } ?: ""
-
-            // 3. Tentukan apakah ini sukses (berdasarkan HTTP status ATAU isi pesan)
-            val isStatusSuccess = response.isSuccessful || 
-                                jsonObject?.optBoolean("success") == true || 
-                                jsonObject?.optBoolean("status") == true
-                                
-            val isMessageSuccess = message.lowercase().let { 
-                it.contains("succes") || it.contains("berhasil") 
-            } || rawJson.lowercase().contains("succes")
-
-            if (isStatusSuccess || isMessageSuccess) {
-                // 4. Parsing data user
-                val dataObj = jsonObject?.optJSONObject("data")
-                val loginData: LoginResponse? = try {
-                    if (dataObj != null) gson.fromJson(dataObj.toString(), LoginResponse::class.java)
-                    else gson.fromJson(rawJson, LoginResponse::class.java)
-                } catch (e: Exception) { null }
-
-                // 4b. Parse user secara terpisah agar aman dari parsing mismatch
-                val userObj = jsonObject?.optJSONObject("user") ?: dataObj?.optJSONObject("user")
-                val parsedUser: User? = try {
-                    if (userObj != null) gson.fromJson(userObj.toString(), User::class.java)
-                    else null
-                } catch (e: Exception) { null }
-
-                // 5. Cari Token sekuat tenaga di semua kemungkinan lokasi (Root, Tokens object, Data object)
-                val token = jsonObject?.optString("accessToken", "")?.takeIf { it.isNotEmpty() } ?:
-                            jsonObject?.optString("access_token", "")?.takeIf { it.isNotEmpty() } ?:
-                            jsonObject?.optString("token", "")?.takeIf { it.isNotEmpty() } ?:
-                            jsonObject?.optJSONObject("tokens")?.optString("accessToken", "")?.takeIf { it.isNotEmpty() } ?:
-                            jsonObject?.optJSONObject("tokens")?.optString("access_token", "")?.takeIf { it.isNotEmpty() } ?:
-                            dataObj?.optString("accessToken", "")?.takeIf { it.isNotEmpty() } ?:
-                            dataObj?.optString("access_token", "")?.takeIf { it.isNotEmpty() } ?:
-                            dataObj?.optString("token", "")?.takeIf { it.isNotEmpty() } ?:
-                            loginData?.anyToken
-
-                if (!token.isNullOrEmpty()) {
-                    Log.d("AUTH_DEBUG", "Login Berhasil, Token ditemukan: ${token.take(10)}...")
-                    val finalResponse = LoginResponse(
-                        success = true,
-                        message = message,
-                        user = parsedUser ?: loginData?.user,
-                        tokens = com.pab.scoutify.model.Tokens(token, null),
-                        accessTokenDirect = token,
-                        accessTokenSnake = null,
-                        tokenSimple = null
-                    )
-                    return@withContext Resource.Success(finalResponse)
+            if (response.isSuccessful) {
+                val loginResponse = response.body()
+                if (loginResponse != null) {
+                    val token = loginResponse.anyToken
+                    val user = loginResponse.anyUser
+                    
+                    if (!token.isNullOrEmpty()) {
+                        Log.d("AUTH_DEBUG", "Login Berhasil, Token ditemukan: ${token.take(10)}...")
+                        
+                        // Normalisasi response agar field standar selalu terisi
+                        val finalResponse = LoginResponse(
+                            success = loginResponse.success ?: true,
+                            message = loginResponse.message ?: "Login successful",
+                            user = user,
+                            tokens = com.pab.scoutify.model.Tokens(token, loginResponse.tokens?.refreshToken ?: loginResponse.data?.tokens?.refreshToken),
+                            accessTokenDirect = token,
+                            accessTokenSnake = token,
+                            tokenSimple = token,
+                            data = null
+                        )
+                        return@withContext Resource.Success(finalResponse)
+                    } else {
+                        Log.e("AUTH_DEBUG", "Pesan sukses tapi token tidak ditemukan. Response: $loginResponse")
+                        return@withContext Resource.Error("Login berhasil tapi Token tidak ditemukan. Periksa backend.")
+                    }
                 } else {
-                    Log.e("AUTH_DEBUG", "Pesan sukses tapi token tidak ditemukan. Raw: $rawJson")
-                    return@withContext Resource.Error("Login berhasil tapi Token tidak ditemukan. Periksa backend.")
+                    return@withContext Resource.Error("Response body kosong")
                 }
+            } else {
+                val errorBody = response.errorBody()?.string() ?: ""
+                Log.e("AUTH_DEBUG", "Login error: $errorBody")
+                val message = try {
+                    val errorMap = gson.fromJson(errorBody, Map::class.java)
+                    errorMap["message"]?.toString() 
+                        ?: errorMap["msg"]?.toString()
+                        ?: "Login Gagal (Status: ${response.code()})"
+                } catch (e: Exception) {
+                    "Login Gagal (Status: ${response.code()})"
+                }
+                return@withContext Resource.Error(message)
             }
-
-            // 6. Jika tidak ada tanda sukses, kembalikan pesan error
-            val errorMsg = if (message.isNotEmpty()) message else "Login Gagal (Status: ${response.code()})"
-            Resource.Error(errorMsg)
-
         } catch (e: Exception) {
             Log.e("AUTH_DEBUG", "Login Exception", e)
             Resource.Error("Kesalahan: ${e.localizedMessage}")

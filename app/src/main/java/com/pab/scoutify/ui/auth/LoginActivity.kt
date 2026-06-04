@@ -70,6 +70,10 @@ class LoginActivity : AppCompatActivity() {
                         sessionManager.saveAuthToken(token)
                         sessionManager.saveRole(loginData.user?.role ?: "Siswa")
                         sessionManager.saveUserName(loginData.user?.name ?: "User")
+                        sessionManager.saveUserEmail(loginData.user?.email ?: "")
+                        sessionManager.saveGugusDepan(loginData.user?.gugusDepan ?: "")
+                        sessionManager.saveNomorInduk(loginData.user?.nomorInduk ?: "")
+                        sessionManager.saveJabatan(loginData.user?.jabatan ?: "")
 
                         // 2. Injeksi Token ke Retrofit Client secara global
                         RetrofitClient.authToken = token
