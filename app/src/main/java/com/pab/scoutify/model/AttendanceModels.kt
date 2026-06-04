@@ -33,7 +33,8 @@ data class AttendanceUiState(
     val attendanceStatus: String = "Belum Check In",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val checkInSuccess: Boolean = false
+    val checkInSuccess: Boolean = false,
+    val lastAttendanceId: Long? = null
 )
 
 data class UserLocation(

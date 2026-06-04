@@ -41,7 +41,7 @@ fun DashboardTopAppBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
-                    painter = painterResource(id = R.drawable.logo_app),
+                    painter = painterResource(id = R.drawable.logo_pramuka),
                     contentDescription = null,
                     modifier = Modifier.size(32.dp)
                 )

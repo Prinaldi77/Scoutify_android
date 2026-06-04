@@ -148,7 +148,28 @@ class DashboardActivity : ComponentActivity() {
                         }
                         composable("attendance") {
                             AttendanceScreen(
-                                onNavigateToNotifications = { navController.navigate("notifications") }
+                                onNavigateToNotifications = { navController.navigate("notifications") },
+                                onNavigateToSelfie = { activityId, attendanceId, lat, lng ->
+                                    navController.navigate("selfie/$activityId/$attendanceId/$lat/$lng")
+                                }
+                            )
+                        }
+                        composable("selfie/{activityId}/{attendanceId}/{lat}/{lng}") { backStackEntry ->
+                            val activityId = backStackEntry.arguments?.getString("activityId")?.toLongOrNull() ?: 0L
+                            val attendanceId = backStackEntry.arguments?.getString("attendanceId")?.toLongOrNull() ?: 0L
+                            val lat = backStackEntry.arguments?.getString("lat")?.toDoubleOrNull() ?: -6.9726
+                            val lng = backStackEntry.arguments?.getString("lng")?.toDoubleOrNull() ?: 107.5908
+                            SelfieVerificationScreen(
+                                activityId = activityId,
+                                attendanceId = attendanceId,
+                                latitude = lat,
+                                longitude = lng,
+                                onNavigateBack = { navController.popBackStack() },
+                                onSuccess = {
+                                    navController.navigate("attendance") {
+                                        popUpTo("attendance") { inclusive = true }
+                                    }
+                                }
                             )
                         }
                         composable("management") {

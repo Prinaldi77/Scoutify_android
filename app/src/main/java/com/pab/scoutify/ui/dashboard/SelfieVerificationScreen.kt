@@ -199,7 +199,7 @@ fun SelfieVerificationScreen(
                                 .background(if (uiState.isReadyForVerification) Color.White else Color.Gray.copy(alpha = 0.5f))
                                 .padding(4.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF1B4332))
+                                .background(Color(0xFF5E35B1))
                         ) {
                             IconButton(
                                 onClick = {

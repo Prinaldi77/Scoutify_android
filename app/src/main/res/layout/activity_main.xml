@@ -28,7 +28,7 @@
             android:layout_width="140dp"
             android:layout_height="140dp"
             android:layout_gravity="center"
-            android:src="@drawable/logo_app"
+            android:src="@drawable/logo_pramuka"
             android:contentDescription="Logo Scoutify" />
     </com.google.android.material.card.MaterialCardView>
 

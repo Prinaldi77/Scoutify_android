@@ -60,15 +60,25 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(fullName: String, phoneNumber: String, email: String, address: String?) {
+    fun updateProfile(
+        fullName: String,
+        phoneNumber: String,
+        email: String,
+        address: String?,
+        gugusDepan: String?,
+        nomorInduk: String?,
+        jabatan: String?
+    ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            // Corrected to use model.request.UpdateProfileRequest with named parameters
             val request = UpdateProfileRequest(
                 fullName = fullName,
                 phoneNumber = phoneNumber,
                 email = email,
-                address = address
+                address = address,
+                gugusDepan = gugusDepan,
+                nomorInduk = nomorInduk,
+                jabatan = jabatan
             )
             when (val result = repository.updateProfile(request)) {
                 is Resource.Success<*> -> {

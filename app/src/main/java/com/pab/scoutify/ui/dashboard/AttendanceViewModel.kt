@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.pab.scoutify.data.repository.AttendanceRepository
 import com.pab.scoutify.model.ActiveActivity
 import com.pab.scoutify.model.AttendanceStatus
@@ -17,8 +18,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
@@ -100,6 +99,7 @@ class AttendanceViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             _checkInState.value = Resource.Loading
             
             val mediaType = "text/plain".toMediaTypeOrNull()
@@ -110,13 +110,51 @@ class AttendanceViewModel @Inject constructor(
             
             val result = repository.checkIn(latBody, lngBody, accBody, kegiatanIdBody, null)
             _checkInState.value = result
+            
             if (result is Resource.Success) {
-                _uiState.update { it.copy(checkInSuccess = true, attendanceStatus = "Sudah Check In") }
+                // Try to extract attendance ID from response data
+                val attendanceId = tryExtractAttendanceId(result.data)
+                _uiState.update { 
+                    it.copy(
+                        checkInSuccess = true, 
+                        attendanceStatus = "Sudah Check In",
+                        lastAttendanceId = attendanceId,
+                        isLoading = false
+                    ) 
+                }
                 refreshAttendanceStatus()
             } else if (result is Resource.Error) {
-                _uiState.update { it.copy(errorMessage = result.message) }
+                _uiState.update { it.copy(errorMessage = result.message, isLoading = false) }
             }
         }
+    }
+
+    /**
+     * Try to extract attendance ID from the check-in response data.
+     * The API returns the created attendance record in data field.
+     */
+    private fun tryExtractAttendanceId(data: BaseResponse<Any>?): Long? {
+        return try {
+            val rawData = data?.data
+            if (rawData is Map<*, *>) {
+                (rawData["id"] as? Double)?.toLong() ?: (rawData["id"] as? Long)
+            } else {
+                // Try JSON parsing
+                val json = Gson().toJson(rawData)
+                val map = Gson().fromJson(json, Map::class.java)
+                (map["id"] as? Double)?.toLong()
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun resetCheckInSuccess() {
+        _uiState.update { it.copy(checkInSuccess = false) }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
     fun refreshAttendanceStatus() {

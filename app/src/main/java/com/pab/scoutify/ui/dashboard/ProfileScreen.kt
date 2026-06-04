@@ -54,6 +54,9 @@ fun ProfileScreen(
     var nameInput by remember { mutableStateOf("") }
     var phoneInput by remember { mutableStateOf("") }
     var emailInput by remember { mutableStateOf("") }
+    var gugusDepanInput by remember { mutableStateOf("") }
+    var nomorIndukInput by remember { mutableStateOf("") }
+    var jabatanInput by remember { mutableStateOf("") }
 
     // Form states for Change Password
     var oldPasswordInput by remember { mutableStateOf("") }
@@ -94,6 +97,9 @@ fun ProfileScreen(
             nameInput = it.name ?: ""
             phoneInput = it.phone ?: ""
             emailInput = it.email ?: ""
+            gugusDepanInput = it.gugusDepan ?: ""
+            nomorIndukInput = it.nomorInduk ?: ""
+            jabatanInput = it.jabatan ?: ""
         }
     }
 
@@ -164,7 +170,10 @@ fun ProfileScreen(
             onDismissRequest = { showEditDialog = false },
             title = { Text("Edit Profil", fontWeight = FontWeight.Bold) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     OutlinedTextField(
                         value = nameInput,
                         onValueChange = { nameInput = it },
@@ -177,6 +186,7 @@ fun ProfileScreen(
                         onValueChange = { emailInput = it },
                         label = { Text("Email") },
                         modifier = Modifier.fillMaxWidth(),
+                        enabled = false, // Email is managed by auth and cannot be changed here directly
                         shape = RoundedCornerShape(8.dp)
                     )
                     OutlinedTextField(
@@ -186,12 +196,41 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
                     )
+                    OutlinedTextField(
+                        value = gugusDepanInput,
+                        onValueChange = { gugusDepanInput = it },
+                        label = { Text("Gugus Depan") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    OutlinedTextField(
+                        value = nomorIndukInput,
+                        onValueChange = { nomorIndukInput = it },
+                        label = { Text("Nomor Induk / NISN") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    OutlinedTextField(
+                        value = jabatanInput,
+                        onValueChange = { jabatanInput = it },
+                        label = { Text("Jabatan") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.updateProfile(nameInput, phoneInput, emailInput, null)
+                        viewModel.updateProfile(
+                            fullName = nameInput,
+                            phoneNumber = phoneInput,
+                            email = emailInput,
+                            address = null,
+                            gugusDepan = gugusDepanInput,
+                            nomorInduk = nomorIndukInput,
+                            jabatan = jabatanInput
+                        )
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1))
                 ) {

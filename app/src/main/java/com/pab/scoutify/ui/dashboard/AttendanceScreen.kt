@@ -17,17 +17,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import com.pab.scoutify.model.ActiveActivity
 import com.pab.scoutify.model.UserLocation
 import com.pab.scoutify.ui.dashboard.components.DashboardTopAppBar
@@ -36,10 +40,13 @@ import com.pab.scoutify.utils.MapConfig
 @Composable
 fun AttendanceScreen(
     viewModel: AttendanceViewModel = hiltViewModel(),
-    onNavigateToNotifications: () -> Unit
+    onNavigateToNotifications: () -> Unit,
+    onNavigateToSelfie: (Long, Long, Double, Double) -> Unit = { _, _, _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    var showBiometricError by remember { mutableStateOf<String?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -56,6 +63,30 @@ fun AttendanceScreen(
                 Manifest.permission.ACCESS_COARSE_LOCATION
             )
         )
+    }
+
+    // Handle check-in success → navigate to selfie
+    LaunchedEffect(uiState.checkInSuccess) {
+        if (uiState.checkInSuccess && uiState.lastAttendanceId != null) {
+            val activity = uiState.activeActivity
+            if (activity != null) {
+                onNavigateToSelfie(
+                    activity.id,
+                    uiState.lastAttendanceId!!,
+                    uiState.userLocation?.latitude ?: activity.latitude,
+                    uiState.userLocation?.longitude ?: activity.longitude
+                )
+                viewModel.resetCheckInSuccess()
+            }
+        }
+    }
+
+    // Handle errors
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
     }
 
     Scaffold(
@@ -84,7 +115,6 @@ fun AttendanceScreen(
                     
                     ActiveActivityCard(uiState.activeActivity)
 
-                    // Map Section dengan ukuran tetap agar stabil
                     MapCard(
                         activeActivity = uiState.activeActivity,
                         userLocation = uiState.userLocation,
@@ -96,18 +126,76 @@ fun AttendanceScreen(
                         distance = uiState.distance
                     )
 
-                    AttendanceActionButton(
+                    // Biometric + Check-In Button
+                    AttendanceBiometricButton(
                         status = uiState.attendanceStatus,
                         isEnabled = uiState.isWithinRadius && !uiState.isLoading,
-                        onCheckIn = { viewModel.checkIn() }
+                        isLoading = uiState.isLoading,
+                        onCheckIn = {
+                            val biometricManager = BiometricManager.from(context)
+                            val canAuthenticate = biometricManager.canAuthenticate(
+                                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                                BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                            )
+                            
+                            if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
+                                val executor = ContextCompat.getMainExecutor(context)
+                                val biometricPrompt = BiometricPrompt(
+                                    context as FragmentActivity,
+                                    executor,
+                                    object : BiometricPrompt.AuthenticationCallback() {
+                                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                            super.onAuthenticationSucceeded(result)
+                                            viewModel.checkIn()
+                                        }
+                                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                                            super.onAuthenticationError(errorCode, errString)
+                                            showBiometricError = "Autentikasi dibatalkan: $errString"
+                                        }
+                                        override fun onAuthenticationFailed() {
+                                            super.onAuthenticationFailed()
+                                            showBiometricError = "Sidik jari tidak dikenali. Coba lagi."
+                                        }
+                                    }
+                                )
+                                
+                                val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                                    .setTitle("Verifikasi Biometrik")
+                                    .setSubtitle("Gunakan sidik jari atau wajah untuk konfirmasi absen")
+                                    .setAllowedAuthenticators(
+                                        BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                                    )
+                                    .build()
+                                    
+                                biometricPrompt.authenticate(promptInfo)
+                            } else {
+                                // Biometric not available, go directly
+                                viewModel.checkIn()
+                            }
+                        }
                     )
 
-                    InfoFooter(uiState.activeActivity)
+                    AttendanceFooter(uiState.activeActivity)
                     
                     Spacer(Modifier.height(24.dp))
                 }
             }
         }
+    }
+
+    // Biometric Error Dialog
+    showBiometricError?.let { error ->
+        AlertDialog(
+            onDismissRequest = { showBiometricError = null },
+            title = { Text("Verifikasi Gagal", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1)) },
+            text = { Text(error) },
+            confirmButton = {
+                TextButton(onClick = { showBiometricError = null }) {
+                    Text("OK", color = Color(0xFF5E35B1))
+                }
+            }
+        )
     }
 }
 
@@ -129,7 +217,6 @@ fun MapCard(
         position = CameraPosition.fromLatLngZoom(targetLatLng, MapConfig.ATTENDANCE_MAP_ZOOM)
     }
 
-    // Update kamera saat data kegiatan muncul
     LaunchedEffect(targetLatLng) {
         if (activeActivity != null) {
             cameraPositionState.animate(
@@ -213,9 +300,10 @@ fun RadiusStatusCard(isWithinRadius: Boolean, distance: Double) {
 }
 
 @Composable
-fun AttendanceActionButton(
+fun AttendanceBiometricButton(
     status: String,
     isEnabled: Boolean,
+    isLoading: Boolean,
     onCheckIn: () -> Unit
 ) {
     val isAlreadyCheckedIn = status.contains("Sudah", ignoreCase = true)
@@ -224,7 +312,7 @@ fun AttendanceActionButton(
         onClick = onCheckIn,
         modifier = Modifier
             .fillMaxWidth()
-            .height(58.dp),
+            .height(62.dp),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isAlreadyCheckedIn) Color(0xFF9C27B0) else Color(0xFF5E35B1),
@@ -232,17 +320,31 @@ fun AttendanceActionButton(
         ),
         enabled = isEnabled && !isAlreadyCheckedIn
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                if (isAlreadyCheckedIn) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.Login,
-                contentDescription = null
-            )
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = if (isAlreadyCheckedIn) "Sudah Presensi" else "Lakukan Presensi",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
+        if (isLoading) {
+            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    if (isAlreadyCheckedIn) Icons.Default.CheckCircle else Icons.Default.Fingerprint,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = if (isAlreadyCheckedIn) "✓ Sudah Presensi" else "Presensi dengan Biometrik",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (!isAlreadyCheckedIn) {
+                        Text(
+                            text = "Verifikasi sidik jari + selfie",
+                            fontSize = 11.sp,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -266,7 +368,7 @@ fun ActiveActivityCard(activity: ActiveActivity?) {
             Spacer(Modifier.width(16.dp))
             Column {
                 Text(
-                    text = activity?.name ?: "Mencari Kegiatan...",
+                    text = activity?.name ?: "Mencari Kegiatan Aktif...",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF5E35B1)
@@ -276,25 +378,40 @@ fun ActiveActivityCard(activity: ActiveActivity?) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
+                if (activity != null) {
+                    Spacer(Modifier.height(4.dp))
+                    Surface(
+                        color = Color(0xFFEFEBFA),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = "⏰ ${activity.timeRange}",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            fontSize = 12.sp,
+                            color = Color(0xFF5E35B1),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun InfoFooter(activity: ActiveActivity?) {
+fun AttendanceFooter(activity: ActiveActivity?) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
-        InfoItem(Icons.Default.AccessTime, activity?.timeRange ?: "--:-- WIB")
-        InfoItem(Icons.Default.History, "Riwayat")
-        InfoItem(Icons.AutoMirrored.Filled.HelpOutline, "Bantuan")
+        AttendanceInfoItem(Icons.Default.AccessTime, activity?.timeRange ?: "--:-- WIB")
+        AttendanceInfoItem(Icons.Default.History, "Riwayat")
+        AttendanceInfoItem(Icons.AutoMirrored.Filled.HelpOutline, "Bantuan")
     }
 }
 
 @Composable
-fun InfoItem(icon: ImageVector, label: String) {
+fun AttendanceInfoItem(icon: ImageVector, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
         Text(label, fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Medium)

@@ -23,7 +23,8 @@ data class NotificationItem(
     @SerializedName("title") val title: String,
     @SerializedName("content") val content: String,
     @SerializedName("time") val time: String,
-    @SerializedName("category") val category: String
+    @SerializedName("category") val category: String,
+    @SerializedName("is_read") val isRead: Boolean = false
 )
 
 data class DashboardUiState(

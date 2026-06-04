@@ -122,7 +122,7 @@ interface ApiService {
 
     // ─── NOTIFICATIONS ──────────────────────────────────────
     @GET("notifications")
-    suspend fun getNotifications(): Response<BaseResponse<List<Notification>>>
+    suspend fun getNotifications(): Response<BaseResponse<List<NotificationItem>>>
 
     @PUT("notifications/{id}/read")
     suspend fun markNotificationRead(@Path("id") id: Long): Response<BaseResponse<Any>>
