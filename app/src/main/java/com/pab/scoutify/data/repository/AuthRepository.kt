@@ -4,6 +4,7 @@ import android.util.Log
 import com.pab.scoutify.api.RetrofitClient
 import com.pab.scoutify.model.BaseResponse
 import com.pab.scoutify.model.LoginResponse
+import com.pab.scoutify.model.User
 import com.pab.scoutify.model.request.LoginRequest
 import com.pab.scoutify.model.request.RegisterRequest
 import com.pab.scoutify.utils.Resource
@@ -60,19 +61,30 @@ class AuthRepository {
                     else gson.fromJson(rawJson, LoginResponse::class.java)
                 } catch (e: Exception) { null }
 
-                // 5. Cari Token sekuat tenaga di semua kemungkinan lokasi
-                val token = loginData?.anyToken ?: 
+                // 4b. Parse user secara terpisah agar aman dari parsing mismatch
+                val userObj = jsonObject?.optJSONObject("user") ?: dataObj?.optJSONObject("user")
+                val parsedUser: User? = try {
+                    if (userObj != null) gson.fromJson(userObj.toString(), User::class.java)
+                    else null
+                } catch (e: Exception) { null }
+
+                // 5. Cari Token sekuat tenaga di semua kemungkinan lokasi (Root, Tokens object, Data object)
+                val token = jsonObject?.optString("accessToken", "")?.takeIf { it.isNotEmpty() } ?:
+                            jsonObject?.optString("access_token", "")?.takeIf { it.isNotEmpty() } ?:
                             jsonObject?.optString("token", "")?.takeIf { it.isNotEmpty() } ?:
-                            jsonObject?.optString("accessToken", "")?.takeIf { it.isNotEmpty() } ?:
+                            jsonObject?.optJSONObject("tokens")?.optString("accessToken", "")?.takeIf { it.isNotEmpty() } ?:
+                            jsonObject?.optJSONObject("tokens")?.optString("access_token", "")?.takeIf { it.isNotEmpty() } ?:
+                            dataObj?.optString("accessToken", "")?.takeIf { it.isNotEmpty() } ?:
+                            dataObj?.optString("access_token", "")?.takeIf { it.isNotEmpty() } ?:
                             dataObj?.optString("token", "")?.takeIf { it.isNotEmpty() } ?:
-                            jsonObject?.optJSONObject("tokens")?.optString("accessToken")
+                            loginData?.anyToken
 
                 if (!token.isNullOrEmpty()) {
-                    Log.d("AUTH_DEBUG", "Login Berhasil, Token ditemukan.")
+                    Log.d("AUTH_DEBUG", "Login Berhasil, Token ditemukan: ${token.take(10)}...")
                     val finalResponse = LoginResponse(
                         success = true,
                         message = message,
-                        user = loginData?.user,
+                        user = parsedUser ?: loginData?.user,
                         tokens = com.pab.scoutify.model.Tokens(token, null),
                         accessTokenDirect = token,
                         accessTokenSnake = null,
@@ -80,7 +92,7 @@ class AuthRepository {
                     )
                     return@withContext Resource.Success(finalResponse)
                 } else {
-                    Log.e("AUTH_DEBUG", "Pesan sukses tapi token tidak ditemukan.")
+                    Log.e("AUTH_DEBUG", "Pesan sukses tapi token tidak ditemukan. Raw: $rawJson")
                     return@withContext Resource.Error("Login berhasil tapi Token tidak ditemukan. Periksa backend.")
                 }
             }
