@@ -1,6 +1,7 @@
 package com.pab.scoutify.ui.dashboard
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +26,12 @@ fun AddMemberScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+
+    var roleDropdownExpanded by remember { mutableStateOf(false) }
+    var jabatanDropdownExpanded by remember { mutableStateOf(false) }
+
+    val rolesList = listOf("SISWA", "BENDAHARA", "SEKRETARIS", "PEMBINA")
+    val jabatansList = listOf("Pratama", "Wakil Pratama", "Bendahara", "Sekretaris", "Pembina Putra", "Pembina Putri", "Anggota")
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -53,7 +60,7 @@ fun AddMemberScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Informasi Personal", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1))
+            Text("Informasi Akun & Personal", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1))
 
             OutlinedTextField(
                 value = uiState.name,
@@ -65,24 +72,124 @@ fun AddMemberScreen(
             )
 
             OutlinedTextField(
+                value = uiState.email,
+                onValueChange = { viewModel.onEmailChange(it) },
+                label = { Text("Email (digunakan untuk login)") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !viewModel.isEditMode,
+                shape = RoundedCornerShape(12.dp),
+                leadingIcon = { Icon(Icons.Default.Email, null) }
+            )
+
+            OutlinedTextField(
                 value = uiState.nisn,
                 onValueChange = { viewModel.onNisnChange(it) },
-                label = { Text("NISN") },
+                label = { Text("NISN / Nomor Induk") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 leadingIcon = { Icon(Icons.Default.Badge, null) }
             )
 
             HorizontalDivider()
-            Text("Keanggotaan", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1))
+            Text("Hak Akses & Kepramukaan", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1))
+
+            // Dropdown untuk Role Akses System
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = when (uiState.role) {
+                        "SISWA" -> "Siswa (Akses Standar)"
+                        "BENDAHARA" -> "Bendahara (Akses Uang Kas)"
+                        "SEKRETARIS" -> "Sekretaris (Akses Laporan)"
+                        "PEMBINA" -> "Pembina (Akses Manajemen)"
+                        else -> uiState.role
+                    },
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Akses / Role System") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { roleDropdownExpanded = true },
+                    enabled = true,
+                    shape = RoundedCornerShape(12.dp),
+                    leadingIcon = { Icon(Icons.Default.Security, null) },
+                    trailingIcon = {
+                        IconButton(onClick = { roleDropdownExpanded = true }) {
+                            Icon(Icons.Default.ArrowDropDown, null)
+                        }
+                    }
+                )
+                DropdownMenu(
+                    expanded = roleDropdownExpanded,
+                    onDismissRequest = { roleDropdownExpanded = false }
+                ) {
+                    rolesList.forEach { roleVal ->
+                        DropdownMenuItem(
+                            text = { 
+                                Text(when (roleVal) {
+                                    "SISWA" -> "Siswa (Akses Standar)"
+                                    "BENDAHARA" -> "Bendahara (Akses Uang Kas)"
+                                    "SEKRETARIS" -> "Sekretaris (Akses Laporan)"
+                                    "PEMBINA" -> "Pembina (Akses Manajemen)"
+                                    else -> roleVal
+                                })
+                            },
+                            onClick = {
+                                viewModel.onRoleChange(roleVal)
+                                roleDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // Dropdown untuk Jabatan Kepramukaan
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = uiState.jabatan,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Jabatan Kepramukaan") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { jabatanDropdownExpanded = true },
+                    enabled = true,
+                    shape = RoundedCornerShape(12.dp),
+                    leadingIcon = { Icon(Icons.Default.Stars, null) },
+                    trailingIcon = {
+                        IconButton(onClick = { jabatanDropdownExpanded = true }) {
+                            Icon(Icons.Default.ArrowDropDown, null)
+                        }
+                    }
+                )
+                DropdownMenu(
+                    expanded = jabatanDropdownExpanded,
+                    onDismissRequest = { jabatanDropdownExpanded = false }
+                ) {
+                    jabatansList.forEach { jabatanVal ->
+                        DropdownMenuItem(
+                            text = { Text(jabatanVal) },
+                            onClick = {
+                                viewModel.onJabatanChange(jabatanVal)
+                                // Sync default role for ease of use
+                                if (jabatanVal == "Bendahara") viewModel.onRoleChange("BENDAHARA")
+                                else if (jabatanVal == "Sekretaris") viewModel.onRoleChange("SEKRETARIS")
+                                else if (jabatanVal.startsWith("Pembina")) viewModel.onRoleChange("PEMBINA")
+                                else viewModel.onRoleChange("SISWA")
+                                
+                                jabatanDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
 
             OutlinedTextField(
                 value = uiState.rank,
                 onValueChange = { viewModel.onRankChange(it) },
-                label = { Text("Jabatan / Pangkat") },
+                label = { Text("Tingkatan / Pangkat (Contoh: Penggalang, Penegak)") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                leadingIcon = { Icon(Icons.Default.Stars, null) }
+                leadingIcon = { Icon(Icons.Default.Leaderboard, null) }
             )
 
             OutlinedTextField(

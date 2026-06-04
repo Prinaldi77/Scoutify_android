@@ -13,5 +13,7 @@ data class Anggota(
     val angkatan: String?,
     @SerializedName("foto_url")
     val fotoUrl: String?,
-    val status: String?
+    val status: String?,
+    val email: String? = null,
+    val role: String? = null
 )

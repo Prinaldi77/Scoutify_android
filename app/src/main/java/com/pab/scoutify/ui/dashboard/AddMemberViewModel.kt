@@ -18,10 +18,13 @@ data class AddMemberUiState(
     val isSuccess: Boolean = false,
     val errorMessage: String? = null,
     val name: String = "",
+    val email: String = "",
+    val role: String = "SISWA",
     val nisn: String = "",
-    val rank: String = "ANGGOTA",
+    val rank: String = "Penggalang",
     val regu: String = "",
-    val status: String = "Aktif"
+    val status: String = "Aktif",
+    val jabatan: String = "ANGGOTA"
 )
 
 @HiltViewModel
@@ -54,10 +57,13 @@ class AddMemberViewModel @Inject constructor(
                         _uiState.update { it.copy(
                             isLoading = false,
                             name = member.name ?: "",
+                            email = member.email ?: "",
+                            role = member.role ?: "SISWA",
                             nisn = member.nisn ?: "",
-                            rank = member.rank ?: "ANGGOTA",
+                            rank = member.rank ?: "Penggalang",
                             regu = member.regu ?: "",
-                            status = member.status ?: "Aktif"
+                            status = member.status ?: "Aktif",
+                            jabatan = member.jabatan ?: "ANGGOTA"
                         ) }
                     }
                     is Resource.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = resource.message) }
@@ -67,15 +73,22 @@ class AddMemberViewModel @Inject constructor(
     }
 
     fun onNameChange(newName: String) = _uiState.update { it.copy(name = newName) }
+    fun onEmailChange(newEmail: String) = _uiState.update { it.copy(email = newEmail) }
+    fun onRoleChange(newRole: String) = _uiState.update { it.copy(role = newRole) }
     fun onNisnChange(newNisn: String) = _uiState.update { it.copy(nisn = newNisn) }
     fun onRankChange(newRank: String) = _uiState.update { it.copy(rank = newRank) }
     fun onReguChange(newRegu: String) = _uiState.update { it.copy(regu = newRegu) }
     fun onStatusChange(newStatus: String) = _uiState.update { it.copy(status = newStatus) }
+    fun onJabatanChange(newJabatan: String) = _uiState.update { it.copy(jabatan = newJabatan) }
 
     fun submitMember() {
         val state = _uiState.value
-        if (state.name.isBlank() || state.nisn.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Nama dan NISN wajib diisi!") }
+        if (state.name.isBlank()) {
+            _uiState.update { it.copy(errorMessage = "Nama wajib diisi!") }
+            return
+        }
+        if (!isEditMode && state.email.isBlank()) {
+            _uiState.update { it.copy(errorMessage = "Email wajib diisi untuk anggota baru!") }
             return
         }
 
@@ -84,12 +97,14 @@ class AddMemberViewModel @Inject constructor(
                 id = memberId ?: 0,
                 nama = state.name,
                 nisn = state.nisn,
-                jabatan = state.rank,
+                jabatan = state.jabatan,
                 regu = state.regu,
                 status = state.status,
-                kelas = null,
+                kelas = state.rank,
                 angkatan = null,
-                fotoUrl = null
+                fotoUrl = null,
+                email = if (isEditMode) null else state.email.trim(),
+                role = state.role
             )
 
             val flow = if (memberId != null) {

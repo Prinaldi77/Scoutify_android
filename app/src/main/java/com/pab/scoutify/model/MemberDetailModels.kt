@@ -17,7 +17,10 @@ data class MemberDetail(
     val regu: String?,
     val achievements: List<Achievement> = emptyList(),
     val activityHistory: List<ActivityHistoryItem> = emptyList(),
-    val attendanceRate: Int = 0
+    val attendanceRate: Int = 0,
+    val email: String? = null,
+    val role: String? = null,
+    val jabatan: String? = null
 )
 
 data class Achievement(

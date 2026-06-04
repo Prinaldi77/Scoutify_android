@@ -208,6 +208,10 @@ class DashboardActivity : ComponentActivity() {
                                 onNavigateBack = { navController.popBackStack() },
                                 onEditProfile = { },
                                 onChangePassword = { },
+                                onSettingsClick = {
+                                    val intent = Intent(this@DashboardActivity, SettingsActivity::class.java)
+                                    startActivity(intent)
+                                },
                                 onLogoutSuccess = {
                                     sessionManager.clearSession()
                                     val intent = Intent(this@DashboardActivity, LoginActivity::class.java)

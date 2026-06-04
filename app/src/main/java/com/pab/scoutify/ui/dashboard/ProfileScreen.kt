@@ -41,6 +41,7 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onEditProfile: () -> Unit,
     onChangePassword: () -> Unit,
+    onSettingsClick: () -> Unit,
     onLogoutSuccess: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -114,7 +115,7 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Settings */ }) {
+                    IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color(0xFF5E35B1))
                     }
                 },
