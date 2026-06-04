@@ -1,5 +1,7 @@
 package com.pab.scoutify.ui.dashboard
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,91 +42,120 @@ fun DashboardScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color(0xFFF9F9F6))
+                .background(Color(0xFFF5F2FA))
         ) {
             if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF1B4332))
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF5E35B1))
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(top = 16.dp, bottom = 32.dp)
+                AnimatedVisibility(
+                    visible = !uiState.isLoading,
+                    enter = fadeIn(animationSpec = tween(600)) + slideInVertically(
+                        initialOffsetY = { 120 },
+                        animationSpec = tween(600)
+                    ),
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    // 1. Header Profil Mewah
-                    item { HeaderUserSection(uiState.userProfile) }
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(top = 16.dp, bottom = 32.dp)
+                    ) {
+                        // 1. Header Profil Mewah
+                        item { HeaderUserSection(uiState.userProfile) }
 
-                    // 2. Konten Spesifik berdasarkan Role (PEMBINA vs SISWA)
-                    if (userRole == "pembina" || userRole == "admin") {
-                        item {
-                            SectionHeader(title = "Statistik Gudep", onSeeAllClick = onNavigateToManagement)
-                        }
-                        item {
-                            uiState.summary?.let { summary ->
-                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // 2. Konten Spesifik berdasarkan Role (PEMBINA vs SISWA)
+                        if (userRole == "pembina" || userRole == "admin") {
+                            item {
+                                SectionHeader(title = "Statistik Gudep", onSeeAllClick = onNavigateToManagement)
+                            }
+                            item {
+                                uiState.summary?.let { summary ->
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        // Total Anggota - Hero Card (Full Width, Taller)
                                         StatisticCard(
-                                            title = "Total Anggota",
+                                            title = "Total Anggota Gudep",
                                             value = summary.totalMembers.toString(),
                                             icon = Icons.Default.Groups,
-                                            containerColor = Color(0xFFE8F5E9),
+                                            containerColor = Color(0xFFEFEBFA), // soft purple tint
+                                            contentColor = Color(0xFF5E35B1),
                                             onClick = onNavigateToManagement,
-                                            modifier = Modifier.weight(1f)
+                                            modifier = Modifier.fillMaxWidth(),
+                                            height = 135.dp
                                         )
+                                        
+                                        // Row for two side-by-side cards (Kegiatan and Hadir Hari Ini)
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            StatisticCard(
+                                                title = "Kegiatan",
+                                                value = summary.totalActivities.toString(),
+                                                icon = Icons.Default.Map,
+                                                containerColor = Color(0xFFFFF3CD),
+                                                contentColor = Color(0xFF856404),
+                                                onClick = onNavigateToActivities,
+                                                modifier = Modifier.weight(1f),
+                                                height = 115.dp
+                                            )
+                                            StatisticCard(
+                                                title = "Hadir Hari Ini",
+                                                value = summary.todayAttendance.toString(),
+                                                icon = Icons.Default.CheckCircle,
+                                                containerColor = Color(0xFFE3F2FD),
+                                                contentColor = Color(0xFF1565C0),
+                                                onClick = { /* Detail Kehadiran */ },
+                                                modifier = Modifier.weight(1f),
+                                                height = 115.dp
+                                            )
+                                        }
+
+                                        // Staf Pembina - Horizontal Bottom Card (Full Width, Shorter)
                                         StatisticCard(
-                                            title = "Kegiatan",
-                                            value = summary.totalActivities.toString(),
-                                            icon = Icons.Default.Map,
-                                            containerColor = Color(0xFFFFF3CD),
-                                            onClick = onNavigateToActivities,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                    }
-                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        StatisticCard(
-                                            title = "Hadir Hari Ini",
-                                            value = summary.todayAttendance.toString(),
-                                            icon = Icons.Default.CheckCircle,
-                                            containerColor = Color(0xFFE3F2FD),
-                                            onClick = { /* Detail Kehadiran */ },
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        StatisticCard(
-                                            title = "Staf Pembina",
+                                            title = "Staf Pembina / Pembina Pendamping",
                                             value = summary.totalTrainers.toString(),
                                             icon = Icons.Default.Badge,
                                             containerColor = Color(0xFFFCE4EC),
+                                            contentColor = Color(0xFFC2185B),
                                             onClick = { /* Daftar Pembina */ },
-                                            modifier = Modifier.weight(1f)
+                                            modifier = Modifier.fillMaxWidth(),
+                                            height = 95.dp
                                         )
                                     }
                                 }
                             }
-                        }
-                    } else {
+                        } else {
                         // Tampilan Dashboard untuk SISWA
                         item {
                             SectionHeader(title = "Capaian Saya", onSeeAllClick = { onNavigateToAttendance(0) })
                         }
                         item {
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 StatisticCard(
                                     title = "Kehadiran",
                                     value = "${uiState.summary?.todayAttendance ?: 0}%",
                                     icon = Icons.Default.Timeline,
-                                    containerColor = Color(0xFF1B4332),
+                                    containerColor = Color(0xFF5E35B1),
                                     contentColor = Color.White,
                                     onClick = { onNavigateToAttendance(0) },
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1.2f),
+                                    height = 125.dp
                                 )
                                 StatisticCard(
                                     title = "Poin SKU",
                                     value = "12/24",
                                     icon = Icons.Default.MilitaryTech,
-                                    containerColor = Color(0xFFFFD8B1),
+                                    containerColor = Color(0xFFFFB300),
+                                    contentColor = Color(0xFF4A0E4E),
                                     onClick = { /* Target SKU */ },
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(0.8f),
+                                    height = 110.dp
                                 )
                             }
                         }
@@ -166,9 +197,10 @@ fun DashboardScreen(
 
                     items(uiState.latestNotifications.take(3)) { notification ->
                         NotificationCard(notification, onClick = onNavigateToNotifications)
-                    }
-                }
-            }
-        }
-    }
-}
+                    } // Ends items
+                } // Ends LazyColumn
+            } // Ends AnimatedVisibility
+        } // Ends else
+    } // Ends Box
+} // Ends Scaffold
+} // Ends DashboardScreen

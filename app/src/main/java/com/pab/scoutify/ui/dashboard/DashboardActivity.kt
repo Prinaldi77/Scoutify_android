@@ -38,9 +38,13 @@ class DashboardActivity : ComponentActivity() {
         setContent {
             MaterialTheme(
                 colorScheme = lightColorScheme(
-                    primary = Color(0xFF1B4332),
-                    secondary = Color(0xFF2D6A4F),
-                    tertiary = Color(0xFFFFD8B1)
+                    primary = Color(0xFF5E35B1),      // Royal Purple
+                    secondary = Color(0xFF9C27B0),    // Lilac/Orchid Accent
+                    tertiary = Color(0xFFFFB300),     // Warm Gold
+                    background = Color(0xFFF5F2FA),   // Soft Lavender Cream background
+                    surface = Color(0xFFFBF9FF),      // Lavender Tint white
+                    onPrimary = Color.White,
+                    onSecondary = Color.White
                 )
             ) {
                 val navController = rememberNavController()
@@ -50,6 +54,7 @@ class DashboardActivity : ComponentActivity() {
                 val items = if (userRole == "pembina" || userRole == "admin") {
                     listOf(
                         BottomNavItem("Beranda", "home", Icons.Default.Home),
+                        BottomNavItem("Kegiatan", "activities", Icons.AutoMirrored.Filled.List),
                         BottomNavItem("Anggota", "management", Icons.Default.Groups),
                         BottomNavItem("Laporan", "reports", Icons.Default.Assessment),
                         BottomNavItem("Profil", "profile", Icons.Default.Person)
@@ -87,8 +92,8 @@ class DashboardActivity : ComponentActivity() {
                                             }
                                         },
                                         colors = NavigationBarItemDefaults.colors(
-                                            selectedIconColor = Color(0xFF1B4332),
-                                            indicatorColor = Color(0xFFFFD8B1).copy(alpha = 0.5f)
+                                            selectedIconColor = Color(0xFF5E35B1),
+                                            indicatorColor = Color(0xFFEFEBFA)
                                         )
                                     )
                                 }
@@ -103,16 +108,42 @@ class DashboardActivity : ComponentActivity() {
                     ) {
                         composable("home") {
                             DashboardScreen(
-                                onNavigateToAttendance = { _ -> navController.navigate("attendance") },
+                                onNavigateToAttendance = { _ ->
+                                    if (userRole == "pembina" || userRole == "admin") {
+                                        navController.navigate("reports")
+                                    } else {
+                                        navController.navigate("attendance")
+                                    }
+                                },
                                 onNavigateToActivities = { navController.navigate("activities") },
                                 onNavigateToNotifications = { navController.navigate("notifications") },
                                 onNavigateToManagement = { navController.navigate("management") }
                             )
                         }
                         composable("activities") {
-                            ActivitiesScreen(
-                                onNavigateToDetail = { },
-                                onNotificationClick = { navController.navigate("notifications") }
+                            if (userRole == "pembina" || userRole == "admin") {
+                                ActivityManagementScreen(
+                                    onMenuClick = { },
+                                    onSearchClick = { },
+                                    onAddActivityClick = { navController.navigate("add_activity") },
+                                    onEditActivity = { activityId -> navController.navigate("edit_activity/$activityId") },
+                                    onCheckDetail = { navController.navigate("reports") }
+                                )
+                            } else {
+                                ActivitiesScreen(
+                                    onNavigateToDetail = { },
+                                    onNotificationClick = { navController.navigate("notifications") }
+                                )
+                            }
+                        }
+                        composable("add_activity") {
+                            AddActivityScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("edit_activity/{activityId}") {
+                            AddActivityScreen(
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
                         composable("attendance") {
@@ -124,7 +155,24 @@ class DashboardActivity : ComponentActivity() {
                             ManagementScreen(
                                 onMenuClick = { /* Optional */ },
                                 onSearchClick = { /* Optional */ },
-                                onAddMemberClick = { /* Navigate to add member */ }
+                                onAddMemberClick = { navController.navigate("add_member") },
+                                onMemberClick = { memberId -> navController.navigate("member_detail/$memberId") }
+                            )
+                        }
+                        composable("add_member") {
+                            AddMemberScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("member_detail/{memberId}") {
+                            MemberDetailScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onEditData = { memberId -> navController.navigate("edit_member/$memberId") }
+                            )
+                        }
+                        composable("edit_member/{memberId}") {
+                            AddMemberScreen(
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
                         composable("reports") {

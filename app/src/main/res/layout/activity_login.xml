@@ -33,7 +33,7 @@
                     android:layout_height="70dp"
                     android:layout_gravity="center"
                     android:contentDescription="Logo Scoutify"
-                    android:src="@drawable/logo_profil" />
+                    android:src="@drawable/logo_app" />
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
@@ -57,6 +57,7 @@
 
             <!-- Login Glass-style Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardLogin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="40dp"

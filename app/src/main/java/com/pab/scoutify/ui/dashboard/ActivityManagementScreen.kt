@@ -39,24 +39,24 @@ fun ActivityManagementScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        containerColor = Color(0xFFF9F9F6),
+        containerColor = Color(0xFFF5F2FA),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "Scoutify",
-                        color = Color(0xFF1B4332),
+                        color = Color(0xFF5E35B1),
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color(0xFF1B4332))
+                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color(0xFF5E35B1))
                     }
                 },
                 actions = {
                     IconButton(onClick = onSearchClick) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF1B4332))
+                        Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF5E35B1))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -65,7 +65,7 @@ fun ActivityManagementScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddActivityClick,
-                containerColor = Color(0xFF1B4332),
+                containerColor = Color(0xFF5E35B1),
                 contentColor = Color.White,
                 shape = RoundedCornerShape(30.dp),
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
@@ -84,7 +84,7 @@ fun ActivityManagementScreen(
                     text = "Manajemen Kegiatan",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B4332)
+                    color = Color(0xFF5E35B1)
                 )
                 Text(
                     text = "Kelola daftar aktivitas kepramukaan Pembina.",
@@ -116,7 +116,7 @@ fun ActivityManagementScreen(
 
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF1B4332))
+                    CircularProgressIndicator(color = Color(0xFF5E35B1))
                 }
             } else if (uiState.activities.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -161,7 +161,7 @@ fun StatusChip(
     Surface(
         modifier = Modifier.clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        color = if (isSelected) Color(0xFF1B4332) else Color(0xFFE9ECEF)
+        color = if (isSelected) Color(0xFF5E35B1) else Color(0xFFE9ECEF)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -213,7 +213,7 @@ fun ActiveManagementCard(
                         .padding(12.dp)
                         .align(Alignment.TopStart),
                     shape = RoundedCornerShape(4.dp),
-                    color = Color(0xFF2D6A4F).copy(alpha = 0.8f)
+                    color = Color(0xFF5E35B1).copy(alpha = 0.8f)
                 ) {
                     Text(
                         text = "Pagi",

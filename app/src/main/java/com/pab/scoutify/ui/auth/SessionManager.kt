@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.pab.scoutify.utils.MapConfig
 
 class SessionManager(context: Context) {
 
@@ -105,10 +106,10 @@ class SessionManager(context: Context) {
 
     // Settings
     fun saveGeofenceLat(lat: Double) = prefs.edit().putFloat(KEY_GEOFENCE_LAT, lat.toFloat()).apply()
-    fun getGeofenceLat(): Double = prefs.getFloat(KEY_GEOFENCE_LAT, -6.200000f).toDouble()
+    fun getGeofenceLat(): Double = prefs.getFloat(KEY_GEOFENCE_LAT, MapConfig.DEFAULT_LATITUDE.toFloat()).toDouble()
     
     fun saveGeofenceLng(lng: Double) = prefs.edit().putFloat(KEY_GEOFENCE_LNG, lng.toFloat()).apply()
-    fun getGeofenceLng(): Double = prefs.getFloat(KEY_GEOFENCE_LNG, 106.816666f).toDouble()
+    fun getGeofenceLng(): Double = prefs.getFloat(KEY_GEOFENCE_LNG, MapConfig.DEFAULT_LONGITUDE.toFloat()).toDouble()
     
     fun saveGeofenceRadius(radius: Float) = prefs.edit().putFloat(KEY_GEOFENCE_RADIUS, radius).apply()
     fun getGeofenceRadius(): Float = prefs.getFloat(KEY_GEOFENCE_RADIUS, 100f)

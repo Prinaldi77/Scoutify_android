@@ -9,10 +9,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import com.pab.scoutify.ui.auth.SessionManager
 
 @HiltViewModel
 class AttendanceReportViewModel @Inject constructor(
-    private val repository: ReportRepository
+    private val repository: ReportRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportUiState())
@@ -74,5 +79,18 @@ class AttendanceReportViewModel @Inject constructor(
 
     fun exportPdf() {
         // Implementation for PDF export
+    }
+
+    fun exportCsv(context: Context) {
+        val token = sessionManager.fetchAuthToken() ?: ""
+        val url = "${com.pab.scoutify.BuildConfig.BASE_URL}reports/attendance/export?token=$token"
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

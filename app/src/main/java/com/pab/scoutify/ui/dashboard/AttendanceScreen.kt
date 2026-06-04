@@ -31,6 +31,7 @@ import com.google.maps.android.compose.*
 import com.pab.scoutify.model.ActiveActivity
 import com.pab.scoutify.model.UserLocation
 import com.pab.scoutify.ui.dashboard.components.DashboardTopAppBar
+import com.pab.scoutify.utils.MapConfig
 
 @Composable
 fun AttendanceScreen(
@@ -67,10 +68,10 @@ fun AttendanceScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color(0xFFF9F9F6))
+                .background(Color(0xFFF5F2FA))
         ) {
             if (uiState.isLoading && uiState.activeActivity == null) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF1B4332))
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF5E35B1))
             } else {
                 Column(
                     modifier = Modifier
@@ -120,19 +121,19 @@ fun MapCard(
         if (activeActivity != null && activeActivity.latitude != 0.0) {
             LatLng(activeActivity.latitude, activeActivity.longitude)
         } else {
-            LatLng(-6.200000, 106.816666) // Jakarta Default
+            MapConfig.defaultLatLng
         }
     }
     
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(targetLatLng, 16f)
+        position = CameraPosition.fromLatLngZoom(targetLatLng, MapConfig.ATTENDANCE_MAP_ZOOM)
     }
 
     // Update kamera saat data kegiatan muncul
     LaunchedEffect(targetLatLng) {
         if (activeActivity != null) {
             cameraPositionState.animate(
-                CameraUpdateFactory.newLatLngZoom(targetLatLng, 16f)
+                CameraUpdateFactory.newLatLngZoom(targetLatLng, MapConfig.ATTENDANCE_MAP_ZOOM)
             )
         }
     }
@@ -163,8 +164,8 @@ fun MapCard(
                 Circle(
                     center = targetLatLng,
                     radius = radius.toDouble(),
-                    fillColor = Color(0x332D6A4F),
-                    strokeColor = Color(0xFF1B4332),
+                    fillColor = Color(0x335E35B1),
+                    strokeColor = Color(0xFF5E35B1),
                     strokeWidth = 2f
                 )
             }
@@ -226,7 +227,7 @@ fun AttendanceActionButton(
             .height(58.dp),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isAlreadyCheckedIn) Color(0xFF2D6A4F) else Color(0xFF1B4332),
+            containerColor = if (isAlreadyCheckedIn) Color(0xFF9C27B0) else Color(0xFF5E35B1),
             disabledContainerColor = Color.LightGray
         ),
         enabled = isEnabled && !isAlreadyCheckedIn
@@ -257,10 +258,10 @@ fun ActiveActivityCard(activity: ActiveActivity?) {
             Box(
                 modifier = Modifier
                     .size(50.dp)
-                    .background(Color(0xFFEFE3D0), CircleShape),
+                    .background(Color(0xFFEFEBFA), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Hiking, contentDescription = null, tint = Color(0xFF8B4513))
+                Icon(Icons.Default.Hiking, contentDescription = null, tint = Color(0xFF9C27B0))
             }
             Spacer(Modifier.width(16.dp))
             Column {
@@ -268,7 +269,7 @@ fun ActiveActivityCard(activity: ActiveActivity?) {
                     text = activity?.name ?: "Mencari Kegiatan...",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B4332)
+                    color = Color(0xFF5E35B1)
                 )
                 Text(
                     text = activity?.locationName ?: "Lokasi tidak terdeteksi",

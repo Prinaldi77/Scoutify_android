@@ -33,10 +33,10 @@ fun AddMemberScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF9F9F6),
+        containerColor = Color(0xFFF5F2FA),
         topBar = {
             TopAppBar(
-                title = { Text("Tambah Anggota Baru", fontWeight = FontWeight.Bold) },
+                title = { Text(if (viewModel.isEditMode) "Edit Anggota" else "Tambah Anggota Baru", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -53,7 +53,7 @@ fun AddMemberScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Informasi Personal", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332))
+            Text("Informasi Personal", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1))
 
             OutlinedTextField(
                 value = uiState.name,
@@ -74,9 +74,8 @@ fun AddMemberScreen(
             )
 
             HorizontalDivider()
-            Text("Keanggotaan", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332))
+            Text("Keanggotaan", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1))
 
-            // Jabatan Dropdown (Simplified as TextField for this example, can be replaced with ExposedDropdownMenu)
             OutlinedTextField(
                 value = uiState.rank,
                 onValueChange = { viewModel.onRankChange(it) },
@@ -122,7 +121,7 @@ fun AddMemberScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B4332)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1)),
                 enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {

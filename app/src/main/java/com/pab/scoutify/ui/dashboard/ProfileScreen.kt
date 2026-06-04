@@ -1,5 +1,6 @@
 package com.pab.scoutify.ui.dashboard
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -21,13 +22,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.pab.scoutify.R
+import com.pab.scoutify.model.ChangePasswordRequest
 import com.pab.scoutify.model.ProfileData
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +44,21 @@ fun ProfileScreen(
     onLogoutSuccess: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
+
+    // Form states for Edit Profile
+    var nameInput by remember { mutableStateOf("") }
+    var phoneInput by remember { mutableStateOf("") }
+    var emailInput by remember { mutableStateOf("") }
+
+    // Form states for Change Password
+    var oldPasswordInput by remember { mutableStateOf("") }
+    var newPasswordInput by remember { mutableStateOf("") }
+    var confirmPasswordInput by remember { mutableStateOf("") }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -54,20 +72,47 @@ fun ProfileScreen(
         }
     }
 
+    LaunchedEffect(uiState.updateSuccess) {
+        if (uiState.updateSuccess) {
+            Toast.makeText(context, "Profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+            viewModel.resetState()
+            showEditDialog = false
+            showPasswordDialog = false
+        }
+    }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            Toast.makeText(context, "Gagal: $it", Toast.LENGTH_LONG).show()
+            viewModel.resetState()
+        }
+    }
+
+    // Prefill form states when profile loads
+    LaunchedEffect(uiState.profile) {
+        uiState.profile?.let {
+            nameInput = it.name ?: ""
+            phoneInput = it.phone ?: ""
+            emailInput = it.email ?: ""
+        }
+    }
+
     Scaffold(
+        containerColor = Color(0xFFF5F2FA),
         topBar = {
             TopAppBar(
-                title = { Text("Profil Saya", fontWeight = FontWeight.Bold) },
+                title = { Text("Profil Saya", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF5E35B1))
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* Settings */ }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color(0xFF5E35B1))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { padding ->
@@ -93,8 +138,8 @@ fun ProfileScreen(
                 InfoMembershipSection(profile = uiState.profile)
 
                 AccountSettingsSection(
-                    onEditProfile = onEditProfile,
-                    onChangePassword = onChangePassword,
+                    onEditProfile = { showEditDialog = true },
+                    onChangePassword = { showPasswordDialog = true },
                     onLogout = { showLogoutDialog = true }
                 )
 
@@ -108,11 +153,115 @@ fun ProfileScreen(
             }
 
             if (uiState.isLoading) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Color(0xFF5E35B1))
             }
         }
     }
 
+    // Modal Edit Profil
+    if (showEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { Text("Edit Profil", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = nameInput,
+                        onValueChange = { nameInput = it },
+                        label = { Text("Nama Lengkap") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    OutlinedTextField(
+                        value = emailInput,
+                        onValueChange = { emailInput = it },
+                        label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    OutlinedTextField(
+                        value = phoneInput,
+                        onValueChange = { phoneInput = it },
+                        label = { Text("Nomor Telepon") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.updateProfile(nameInput, phoneInput, emailInput, null)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1))
+                ) {
+                    Text("Simpan")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text("Batal")
+                }
+            }
+        )
+    }
+
+    // Modal Ganti Password
+    if (showPasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { showPasswordDialog = false },
+            title = { Text("Ganti Password", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = oldPasswordInput,
+                        onValueChange = { oldPasswordInput = it },
+                        label = { Text("Password Lama") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    OutlinedTextField(
+                        value = newPasswordInput,
+                        onValueChange = { newPasswordInput = it },
+                        label = { Text("Password Baru") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    OutlinedTextField(
+                        value = confirmPasswordInput,
+                        onValueChange = { confirmPasswordInput = it },
+                        label = { Text("Konfirmasi Password") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (newPasswordInput != confirmPasswordInput) {
+                            Toast.makeText(context, "Password baru tidak cocok!", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        viewModel.changePassword(ChangePasswordRequest(oldPasswordInput, newPasswordInput, confirmPasswordInput))
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1))
+                ) {
+                    Text("Perbarui")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPasswordDialog = false }) {
+                    Text("Batal")
+                }
+            }
+        )
+    }
+
+    // Modal Logout
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -140,7 +289,8 @@ fun ProfileHeaderCard(profile: ProfileData?, onAddPhotoClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA))
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
@@ -162,7 +312,7 @@ fun ProfileHeaderCard(profile: ProfileData?, onAddPhotoClick: () -> Unit) {
                         .align(Alignment.BottomEnd)
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF8B4513))
+                        .background(Color(0xFF9C27B0))
                         .clickable { onAddPhotoClick() }
                         .padding(6.dp),
                     contentAlignment = Alignment.Center
@@ -174,14 +324,16 @@ fun ProfileHeaderCard(profile: ProfileData?, onAddPhotoClick: () -> Unit) {
             Text(
                 text = profile?.name ?: "User Name",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF5E35B1)
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Surface(
-                    color = Color(0xFF1B4332),
+                    color = Color(0xFF5E35B1),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
@@ -236,10 +388,10 @@ fun MembershipItem(icon: ImageVector, label: String, value: String) {
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(Color(0xFFF8F9FA), RoundedCornerShape(8.dp)),
+                .background(Color(0xFFF5F2FA), RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = Color(0xFF1B4332), modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = Color(0xFF5E35B1), modifier = Modifier.size(20.dp))
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column {
@@ -281,7 +433,7 @@ fun ProfileMenuItem(icon: ImageVector, label: String, textColor: Color = Color.U
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = if (textColor != Color.Unspecified) textColor else Color(0xFF1B4332))
+            Icon(icon, contentDescription = null, tint = if (textColor != Color.Unspecified) textColor else Color(0xFF5E35B1))
             Spacer(modifier = Modifier.width(16.dp))
             Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = textColor)
         }

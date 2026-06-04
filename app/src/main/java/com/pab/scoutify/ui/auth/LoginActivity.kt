@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import com.pab.scoutify.R
 import com.pab.scoutify.api.RetrofitClient
 import com.pab.scoutify.databinding.ActivityLoginBinding
 import com.pab.scoutify.ui.dashboard.DashboardActivity
@@ -21,6 +22,12 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Animate layouts
+        val slideUp = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.slide_up)
+        val scaleIn = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.scale_in)
+        binding.ivLogo.startAnimation(scaleIn)
+        binding.cardLogin.startAnimation(slideUp)
 
         sessionManager = SessionManager(this)
         viewModel = ViewModelProvider(this)[AuthViewModel::class.java]

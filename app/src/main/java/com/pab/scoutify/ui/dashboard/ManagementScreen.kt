@@ -6,8 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,29 +35,30 @@ fun ManagementScreen(
     viewModel: ManagementViewModel = hiltViewModel(),
     onMenuClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
-    onAddMemberClick: () -> Unit = {}
+    onAddMemberClick: () -> Unit = {},
+    onMemberClick: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        containerColor = Color(0xFFF9F9F6),
+        containerColor = Color(0xFFF5F2FA),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "Scoutify",
-                        color = Color(0xFF1B4332),
+                        color = Color(0xFF5E35B1),
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color(0xFF1B4332))
+                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color(0xFF5E35B1))
                     }
                 },
                 actions = {
                     IconButton(onClick = onSearchClick) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF1B4332))
+                        Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF5E35B1))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -68,7 +67,7 @@ fun ManagementScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddMemberClick,
-                containerColor = Color(0xFF1B4332),
+                containerColor = Color(0xFF5E35B1),
                 contentColor = Color.White,
                 shape = CircleShape
             ) {
@@ -82,9 +81,10 @@ fun ManagementScreen(
                 .fillMaxSize()
         ) {
             Text(
-                text = "Management Members",
+                text = "Manajemen Anggota",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
+                color = Color(0xFF5E35B1),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
@@ -95,14 +95,14 @@ fun ManagementScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("Search by name or NISN...", color = Color.Gray) },
+                placeholder = { Text("Cari anggota atau NISN...", color = Color.Gray) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color(0xFFE9ECEF),
-                    focusedBorderColor = Color(0xFF1B4332)
+                    focusedBorderColor = Color(0xFF5E35B1)
                 ),
                 singleLine = true
             )
@@ -119,7 +119,7 @@ fun ManagementScreen(
             // Member List
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF1B4332))
+                    CircularProgressIndicator(color = Color(0xFF5E35B1))
                 }
             } else {
                 LazyColumn(
@@ -128,7 +128,7 @@ fun ManagementScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(uiState.filteredMembers) { member ->
-                        MemberCard(member)
+                        MemberCard(member, onClick = { onMemberClick(member.id) })
                     }
                 }
             }
@@ -138,7 +138,7 @@ fun ManagementScreen(
 
 @Composable
 fun FilterChips(selectedFilter: String, onFilterSelected: (String) -> Unit) {
-    val filters = listOf("All Members", "Ambalan Soekarno", "Ambalan Fatmawati", "Regu Rajawali")
+    val filters = listOf("Semua Anggota", "Ambalan Soekarno", "Ambalan Fatmawati", "Regu Rajawali")
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -151,22 +151,13 @@ fun FilterChips(selectedFilter: String, onFilterSelected: (String) -> Unit) {
             Surface(
                 modifier = Modifier.clickable { onFilterSelected(filter) },
                 shape = RoundedCornerShape(20.dp),
-                color = if (isSelected) Color(0xFF1B4332) else Color.White,
+                color = if (isSelected) Color(0xFF5E35B1) else Color.White,
                 border = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE9ECEF)) else null
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (isSelected) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_home), // Using a placeholder for filter icon
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
                     Text(
                         text = filter,
                         color = if (isSelected) Color.White else Color.Gray,
@@ -187,7 +178,7 @@ fun StatsGrid(stats: MemberStats) {
                 title = "Total",
                 value = stats.total.toString(),
                 icon = Icons.Default.Groups,
-                containerColor = Color(0xFF1B4332),
+                containerColor = Color(0xFF5E35B1),
                 contentColor = Color.White,
                 modifier = Modifier.weight(1f)
             )
@@ -209,16 +200,16 @@ fun StatsGrid(stats: MemberStats) {
                 icon = Icons.Default.Cancel,
                 containerColor = Color.White,
                 contentColor = Color.Black,
-                iconTint = Color(0xFF8B4513),
+                iconTint = Color(0xFFC62828),
                 modifier = Modifier.weight(1f)
             )
             StatCard(
                 title = "New Requests",
                 value = stats.newRequests.toString(),
                 icon = Icons.Default.Assignment,
-                containerColor = Color(0xFFFBC49E),
-                contentColor = Color.Black,
-                iconTint = Color(0xFF8B4513),
+                containerColor = Color(0xFFEFEBFA),
+                contentColor = Color(0xFF5E35B1),
+                iconTint = Color(0xFF5E35B1),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -265,9 +256,11 @@ fun StatCard(
 }
 
 @Composable
-fun MemberCard(member: Anggota) {
+fun MemberCard(member: Anggota, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -301,7 +294,7 @@ fun MemberCard(member: Anggota) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
-                        color = Color(0xFFFFF3CD),
+                        color = Color(0xFFEFEBFA),
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
@@ -309,7 +302,7 @@ fun MemberCard(member: Anggota) {
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF856404)
+                            color = Color(0xFF5E35B1)
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -346,9 +339,8 @@ fun MemberCard(member: Anggota) {
                         )
                     }
                 }
-                IconButton(onClick = { /* More options */ }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.Gray)
-                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Icon(Icons.Default.ChevronRight, contentDescription = "Detail", tint = Color.LightGray)
             }
         }
     }

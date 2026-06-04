@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.pab.scoutify.utils.MapConfig
 
 data class AddActivityUiState(
     val isLoading: Boolean = false,
@@ -23,18 +24,56 @@ data class AddActivityUiState(
     val locationName: String = "",
     val description: String = "",
     val category: String = "Aktif",
-    val latitude: Double = -6.200000,
-    val longitude: Double = 106.816666,
+    val latitude: Double = MapConfig.DEFAULT_LATITUDE,
+    val longitude: Double = MapConfig.DEFAULT_LONGITUDE,
     val radius: Float = 100f
 )
 
 @HiltViewModel
 class AddActivityViewModel @Inject constructor(
-    private val repository: ActivitiesRepository
+    private val repository: ActivitiesRepository,
+    savedStateHandle: androidx.lifecycle.SavedStateHandle
 ) : ViewModel() {
+
+    private val activityId: Long? = savedStateHandle.get<String>("activityId")?.toLongOrNull()
+        ?: savedStateHandle.get<Long>("activityId")
+
+    val isEditMode = activityId != null
 
     private val _uiState = MutableStateFlow(AddActivityUiState())
     val uiState: StateFlow<AddActivityUiState> = _uiState.asStateFlow()
+
+    init {
+        activityId?.let { id ->
+            loadActivityDetail(id)
+        }
+    }
+
+    private fun loadActivityDetail(id: Long) {
+        viewModelScope.launch {
+            repository.getActivityDetail(id).collect { resource ->
+                when (resource) {
+                    is Resource.Loading -> _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+                    is Resource.Success -> {
+                        val kegiatan = resource.data.data
+                        _uiState.update { it.copy(
+                            isLoading = false,
+                            name = kegiatan.nama ?: "",
+                            date = kegiatan.tanggal ?: "",
+                            time = kegiatan.waktu ?: "",
+                            locationName = kegiatan.lokasi ?: "",
+                            description = kegiatan.deskripsi ?: "",
+                            category = kegiatan.kategori ?: "Aktif",
+                            latitude = kegiatan.latitude ?: -6.200000,
+                            longitude = kegiatan.longitude ?: 106.816666,
+                            radius = kegiatan.radius ?: 100f
+                        ) }
+                    }
+                    is Resource.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = resource.message) }
+                }
+            }
+        }
+    }
 
     fun onNameChange(newName: String) = _uiState.update { it.copy(name = newName) }
     fun onDateChange(newDate: String) = _uiState.update { it.copy(date = newDate) }
@@ -54,6 +93,7 @@ class AddActivityViewModel @Inject constructor(
 
         viewModelScope.launch {
             val kegiatan = Kegiatan(
+                id = activityId,
                 nama = state.name,
                 tanggal = state.date,
                 waktu = state.time,
@@ -65,7 +105,13 @@ class AddActivityViewModel @Inject constructor(
                 radius = state.radius
             )
 
-            repository.createActivity(kegiatan).collect { resource ->
+            val flow = if (activityId != null) {
+                repository.updateActivity(activityId, kegiatan)
+            } else {
+                repository.createActivity(kegiatan)
+            }
+
+            flow.collect { resource ->
                 when (resource) {
                     is Resource.Loading -> _uiState.update { it.copy(isLoading = true, errorMessage = null) }
                     is Resource.Success -> _uiState.update { it.copy(isLoading = false, isSuccess = true) }

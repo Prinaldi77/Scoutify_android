@@ -55,4 +55,42 @@ class ActivitiesRepository @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi"))
         }
     }
+
+    fun getActivityDetail(id: Long): Flow<Resource<BaseResponse<Kegiatan>>> = flow {
+        emit(Resource.Loading)
+        try {
+            val response = apiService.getKegiatanDetail(id)
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) {
+                    emit(Resource.Success(body))
+                } else {
+                    emit(Resource.Error("Gagal memuat detail kegiatan: Respons kosong"))
+                }
+            } else {
+                emit(Resource.Error("Error: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi"))
+        }
+    }
+
+    fun updateActivity(id: Long, kegiatan: Kegiatan): Flow<Resource<BaseResponse<Kegiatan>>> = flow {
+        emit(Resource.Loading)
+        try {
+            val response = apiService.updateKegiatan(id, kegiatan)
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) {
+                    emit(Resource.Success(body))
+                } else {
+                    emit(Resource.Error("Gagal memperbarui kegiatan: Respons kosong"))
+                }
+            } else {
+                emit(Resource.Error("Error: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi"))
+        }
+    }
 }

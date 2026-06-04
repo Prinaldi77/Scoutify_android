@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import com.pab.scoutify.utils.MapConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,9 +33,9 @@ fun AddActivityScreen(
     val scrollState = rememberScrollState()
     
     // State untuk Peta
-    val jakarta = LatLng(-6.200000, 106.816666)
+    val defaultLoc = MapConfig.defaultLatLng
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(jakarta, 15f)
+        position = CameraPosition.fromLatLngZoom(defaultLoc, MapConfig.DEFAULT_ZOOM)
     }
 
     // Update ViewModel saat marker di peta digeser atau peta diklik
@@ -52,10 +53,10 @@ fun AddActivityScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF9F9F6),
+        containerColor = Color(0xFFF5F2FA),
         topBar = {
             TopAppBar(
-                title = { Text("Tambah Kegiatan Baru", fontWeight = FontWeight.Bold) },
+                title = { Text(if (viewModel.isEditMode) "Edit Kegiatan" else "Tambah Kegiatan Baru", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -73,7 +74,7 @@ fun AddActivityScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Section 1: Informasi Dasar
-            Text("Informasi Kegiatan", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332))
+            Text("Informasi Kegiatan", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1))
             
             OutlinedTextField(
                 value = uiState.name,
@@ -112,8 +113,8 @@ fun AddActivityScreen(
             )
 
             // Section 2: Lokasi & Geofence
-            Divider()
-            Text("Lokasi & Geofence", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332))
+            HorizontalDivider()
+            Text("Lokasi & Geofence", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1))
             
             OutlinedTextField(
                 value = uiState.locationName,
@@ -145,8 +146,8 @@ fun AddActivityScreen(
                     Circle(
                         center = cameraPositionState.position.target,
                         radius = uiState.radius.toDouble(),
-                        fillColor = Color(0x221B4332),
-                        strokeColor = Color(0xFF1B4332),
+                        fillColor = Color(0x225E35B1),
+                        strokeColor = Color(0xFF5E35B1),
                         strokeWidth = 2f
                     )
                 }
@@ -173,8 +174,8 @@ fun AddActivityScreen(
                     onValueChange = { viewModel.onRadiusChange(it) },
                     valueRange = 50f..500f,
                     colors = SliderDefaults.colors(
-                        thumbColor = Color(0xFF1B4332),
-                        activeTrackColor = Color(0xFF1B4332)
+                        thumbColor = Color(0xFF5E35B1),
+                        activeTrackColor = Color(0xFF5E35B1)
                     )
                 )
             }
@@ -189,7 +190,7 @@ fun AddActivityScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B4332)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1)),
                 enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {

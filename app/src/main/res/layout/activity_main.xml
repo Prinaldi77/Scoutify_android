@@ -28,7 +28,7 @@
             android:layout_width="140dp"
             android:layout_height="140dp"
             android:layout_gravity="center"
-            android:src="@drawable/logo_profil"
+            android:src="@drawable/logo_app"
             android:contentDescription="Logo Scoutify" />
     </com.google.android.material.card.MaterialCardView>
 

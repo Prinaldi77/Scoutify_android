@@ -41,63 +41,30 @@ fun MemberDetailScreen(
     val scrollState = rememberScrollState()
 
     Scaffold(
-        containerColor = Color(0xFFF9F9F6),
+        containerColor = Color(0xFFF5F2FA),
         topBar = {
             TopAppBar(
-                title = { Text("Member Detail", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332)) },
+                title = { Text("Detail Anggota", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF1B4332))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF5E35B1))
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* Search */ }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF1B4332))
+                        Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF5E35B1))
                     }
                     IconButton(onClick = { /* More */ }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color(0xFF1B4332))
+                        Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color(0xFF5E35B1))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
-        },
-        bottomBar = {
-            NavigationBar(containerColor = Color.White) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Dashboard, contentDescription = "Dashboard") },
-                    label = { Text("Dashboard") },
-                    selected = false,
-                    onClick = { /* Navigate to Dashboard */ }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.CalendarMonth, contentDescription = "Attendance") },
-                    label = { Text("Attendance") },
-                    selected = false,
-                    onClick = { /* Navigate to Attendance */ }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Groups, contentDescription = "Management") },
-                    label = { Text("Management") },
-                    selected = true,
-                    onClick = { /* Already here or navigate back */ },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
-                        selectedTextColor = Color(0xFF1B4332),
-                        indicatorColor = Color(0xFF1B4332)
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.BarChart, contentDescription = "Reports") },
-                    label = { Text("Reports") },
-                    selected = false,
-                    onClick = { /* Navigate to Reports */ }
-                )
-            }
         }
     ) { padding ->
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF1B4332))
+                CircularProgressIndicator(color = Color(0xFF5E35B1))
             }
         } else if (uiState.errorMessage != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -144,7 +111,7 @@ fun HeaderSection(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2F0).copy(alpha = 0.5f))
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFEFEBFA).copy(alpha = 0.5f))
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
@@ -175,7 +142,7 @@ fun HeaderSection(
                         Icon(
                             Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = Color(0xFF2D6A4F),
+                            tint = Color(0xFF5E35B1),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -186,11 +153,11 @@ fun HeaderSection(
                 text = member.name,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1B4332)
+                color = Color(0xFF5E35B1)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Surface(
-                color = Color(0xFF1B4332),
+                color = Color(0xFF5E35B1),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
@@ -215,7 +182,7 @@ fun HeaderSection(
                 Button(
                     onClick = onEditData,
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B4332)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1)),
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
@@ -249,9 +216,9 @@ fun PersonalInformationSection(member: MemberDetail) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Badge, contentDescription = null, tint = Color(0xFF1B4332), modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Badge, contentDescription = null, tint = Color(0xFF5E35B1), modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Personal Information", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332), fontSize = 16.sp)
+                Text("Personal Information", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1), fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.height(16.dp))
             InfoItem("PLACE / DATE OF BIRTH", member.birthInfo ?: "-")
@@ -280,9 +247,9 @@ fun ScoutAchievementsSection(achievements: List<Achievement>) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFF1B4332), modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFF5E35B1), modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Scout Achievements", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332), fontSize = 16.sp)
+                Text("Scout Achievements", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1), fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.height(12.dp))
             achievements.forEach { achievement ->
@@ -314,7 +281,7 @@ fun AchievementBadge(achievement: Achievement) {
                 Icon(
                     if (achievement.title.contains("First Aid")) Icons.Default.MedicalServices else Icons.Default.Explore,
                     contentDescription = null,
-                    tint = Color(0xFF8B4513),
+                    tint = Color(0xFF9C27B0),
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -341,12 +308,12 @@ fun ActivityHistorySection(history: List<ActivityHistoryItem>, attendanceRate: I
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.AutoMirrored.Filled.EventNote, contentDescription = null, tint = Color(0xFF1B4332), modifier = Modifier.size(20.dp))
+                    Icon(Icons.AutoMirrored.Filled.EventNote, contentDescription = null, tint = Color(0xFF5E35B1), modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Activity History", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332), fontSize = 16.sp)
+                    Text("Activity History", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1), fontSize = 16.sp)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("$attendanceRate%", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332), fontSize = 14.sp)
+                    Text("$attendanceRate%", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1), fontSize = 14.sp)
                     Text("ATTENDANCE RATE", fontSize = 8.sp, color = Color.Gray)
                 }
             }
@@ -382,7 +349,7 @@ fun HistoryListItem(item: ActivityHistoryItem) {
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF1B4332)),
+                .background(Color(0xFF5E35B1)),
             contentAlignment = Alignment.Center
         ) {
             Icon(

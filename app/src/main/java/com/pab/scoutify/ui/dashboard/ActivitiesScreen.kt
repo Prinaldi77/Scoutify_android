@@ -41,16 +41,6 @@ fun ActivitiesScreen(
         containerColor = Color(0xFFF9F9F6),
         topBar = {
             ActivitiesTopBar(onNotificationClick = onNotificationClick)
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Add activity */ },
-                containerColor = Color(0xFF1B4332),
-                contentColor = Color.White,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Activity")
-            }
         }
     ) { padding ->
         Column(
@@ -75,7 +65,7 @@ fun ActivitiesScreen(
 
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF1B4332))
+                    CircularProgressIndicator(color = Color(0xFF5E35B1))
                 }
             } else if (uiState.errorMessage != null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -112,13 +102,13 @@ fun ActivitiesTopBar(onNotificationClick: () -> Unit) {
                     painter = painterResource(id = R.drawable.ic_home), // Placeholder for compass icon
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = Color(0xFF1B4332)
+                    tint = Color(0xFF5E35B1)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Daftar Kegiatan",
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B4332),
+                    color = Color(0xFF5E35B1),
                     fontSize = 20.sp
                 )
             }
@@ -175,7 +165,7 @@ fun FilterChipsSection(selectedCategory: String, onCategorySelected: (String) ->
             Surface(
                 modifier = Modifier.clickable { onCategorySelected(category) },
                 shape = RoundedCornerShape(20.dp),
-                color = if (isSelected) Color(0xFF1B4332) else Color(0xFFE9ECEF)
+                color = if (isSelected) Color(0xFF5E35B1) else Color(0xFFE9ECEF)
             ) {
                 Text(
                     text = category,
@@ -314,7 +304,7 @@ fun ActivityCardB(activity: ActivityItem, onClick: () -> Unit) {
                         .padding(12.dp)
                         .align(Alignment.TopEnd),
                     shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFF1B4332) // Green for "Daftar"
+                    color = Color(0xFF5E35B1) // Purple for "Daftar"
                 ) {
                     Text(
                         text = activity.status,
@@ -349,7 +339,7 @@ fun ActivityCardB(activity: ActivityItem, onClick: () -> Unit) {
                     onClick = { /* Handle registration */ },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B4332))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1))
                 ) {
                     Text(text = "Ikuti Latihan", color = Color.White, fontWeight = FontWeight.Bold)
                 }

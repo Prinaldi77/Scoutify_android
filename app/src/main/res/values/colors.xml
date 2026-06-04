@@ -3,22 +3,22 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Scoutify Modern Brown Palette -->
-    <color name="primary">#6D4C41</color>
-    <color name="primary_dark">#4E342E</color>
-    <color name="primary_light">#8D6E63</color>
+    <!-- Scoutify Modern Purple Palette -->
+    <color name="primary">#5E35B1</color>
+    <color name="primary_dark">#4B2C85</color>
+    <color name="primary_light">#9C27B0</color>
 
     <!-- Secondary & Background -->
-    <color name="backgroundCream">#F5E6CA</color>
-    <color name="accent_beige">#EFE3D0</color>
-    <color name="warm_white">#FFFDF9</color>
+    <color name="backgroundCream">#F5F2FA</color>
+    <color name="accent_beige">#EFEBFA</color>
+    <color name="warm_white">#FBF9FF</color>
 
     <!-- Aliases to maintain compatibility -->
-    <color name="primaryBrown">#6D4C41</color>
-    <color name="primaryDarkBrown">#4E342E</color>
-    <color name="primaryLightBrown">#8D6E63</color>
-    <color name="accent_sand">#EFE3D0</color>
-    <color name="divider">#D7CCC8</color>
+    <color name="primaryBrown">#5E35B1</color>
+    <color name="primaryDarkBrown">#4B2C85</color>
+    <color name="primaryLightBrown">#9C27B0</color>
+    <color name="accent_sand">#EFEBFA</color>
+    <color name="divider">#D1C4E9</color>
 
     <!-- Accent Colors -->
     <color name="scout_green">#4CAF50</color>
@@ -37,10 +37,10 @@
     <color name="statusAlfaText">#C62828</color>
 
     <!-- Additional colors for Scoutify UI components -->
-    <color name="surfaceBrown">#D7CCC8</color>
-    <color name="menuIconBg1">#BCAAA4</color>
+    <color name="surfaceBrown">#EFEBFA</color>
+    <color name="menuIconBg1">#D1C4E9</color>
     <color name="grey_text">#757575</color>
-    <color name="accent_cream">#FFF9E1</color>
+    <color name="accent_cream">#F5F2FA</color>
 
     <!-- Notification & Badge Colors -->
     <color name="accentOrange">#FF9800</color>

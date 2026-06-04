@@ -17,6 +17,15 @@ class MainActivity : AppCompatActivity() {
         // Gunakan layout splash screen Anda
         setContentView(R.layout.activity_main)
 
+        // Animate elements
+        val cardLogo = findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardLogo)
+        val tvAppName = findViewById<android.widget.TextView>(R.id.tvAppName)
+        val tvSlogan = findViewById<android.widget.TextView>(R.id.tvSlogan)
+        val scaleInAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.scale_in)
+        cardLogo?.startAnimation(scaleInAnim)
+        tvAppName?.startAnimation(scaleInAnim)
+        tvSlogan?.startAnimation(scaleInAnim)
+
         val sessionManager = SessionManager(this)
 
         Handler(Looper.getMainLooper()).postDelayed({

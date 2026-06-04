@@ -41,24 +41,24 @@ fun AttendanceReportScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        containerColor = Color(0xFFF9F9F6),
+        containerColor = Color(0xFFF5F2FA),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "Scoutify",
-                        color = Color(0xFF1B4332),
+                        color = Color(0xFF5E35B1),
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color(0xFF1B4332))
+                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color(0xFF5E35B1))
                     }
                 },
                 actions = {
                     IconButton(onClick = onSearchClick) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF1B4332))
+                        Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFF5E35B1))
                     }
                     IconButton(onClick = onProfileClick) {
                         AsyncImage(
@@ -110,13 +110,13 @@ fun AttendanceReportScreen(
 fun ReportHeader(state: ReportUiState, viewModel: AttendanceReportViewModel) {
     Column {
         Text(
-            text = "Attendance Report",
+            text = "Laporan Presensi",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF1B4332)
+            color = Color(0xFF5E35B1)
         )
         Text(
-            text = "Reviewing scout participation for August 2024",
+            text = "Review partisipasi anggota untuk periode saat ini",
             fontSize = 14.sp,
             color = Color.Gray
         )
@@ -141,15 +141,30 @@ fun ReportHeader(state: ReportUiState, viewModel: AttendanceReportViewModel) {
                 )
             }
             
-            Button(
-                onClick = { viewModel.exportPdf() },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B4332)),
-                shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Export PDF", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { viewModel.exportPdf() },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1)),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("PDF", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+
+                val context = androidx.compose.ui.platform.LocalContext.current
+                OutlinedButton(
+                    onClick = { viewModel.exportCsv(context) },
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF5E35B1)),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF5E35B1))
+                ) {
+                    Icon(Icons.Default.TableChart, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Excel/CSV", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
@@ -199,7 +214,7 @@ fun MonthlyDistributionCard(summary: AttendanceReportSummary) {
                         text = "${summary.overallRate}%",
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1B4332)
+                        color = Color(0xFF5E35B1)
                     )
                     Text(
                         text = "Overall Rate",
@@ -213,7 +228,7 @@ fun MonthlyDistributionCard(summary: AttendanceReportSummary) {
             
             // Legend
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                LegendItem("Hadir", "${summary.distribution.hadir}%", Color(0xFF1B4332))
+                LegendItem("Hadir", "${summary.distribution.hadir}%", Color(0xFF5E35B1))
                 LegendItem("Izin", "${summary.distribution.izin}%", Color(0xFF8B4513))
                 LegendItem("Sakit", "${summary.distribution.sakit}%", Color(0xFFD2B48C))
                 LegendItem("Alpa", "${summary.distribution.alpa}%", Color(0xFFC62828))
@@ -233,7 +248,7 @@ fun DonutChart(dist: AttendanceDistribution) {
         
         var startAngle = -90f
         
-        drawArc(Color(0xFF1B4332), startAngle, hadirAngle, false, style = Stroke(strokeWidth, cap = StrokeCap.Round))
+        drawArc(Color(0xFF5E35B1), startAngle, hadirAngle, false, style = Stroke(strokeWidth, cap = StrokeCap.Round))
         startAngle += hadirAngle
         drawArc(Color(0xFF8B4513), startAngle, izinAngle, false, style = Stroke(strokeWidth))
         startAngle += izinAngle
@@ -266,7 +281,7 @@ fun WeeklyTrendCard(trend: List<WeeklyParticipation>) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Weekly Participation Trend", fontWeight = FontWeight.Bold, color = Color.DarkGray)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color(0xFF1B4332)))
+                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color(0xFF5E35B1)))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Hadir", fontSize = 10.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.width(12.dp))
@@ -307,7 +322,7 @@ fun BarChartItem(week: WeeklyParticipation) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(heightFactor)
-                    .background(Color(0xFF1B4332))
+                    .background(Color(0xFF5E35B1))
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -357,7 +372,7 @@ fun RecentActivitySection(activities: List<ActivityParticipation>) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Recent Activity Breakdown", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332), fontSize = 18.sp)
+            Text("Recent Activity Breakdown", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1), fontSize = 18.sp)
             TextButton(onClick = { /* View All */ }) {
                 Text("View All", color = Color.Gray, fontSize = 12.sp)
             }
@@ -396,7 +411,7 @@ fun ActivityRowItem(activity: ActivityParticipation) {
     ) {
         Row(modifier = Modifier.weight(1.5f), verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF1B4332)),
+                modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF5E35B1)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Hiking, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
@@ -414,7 +429,7 @@ fun ActivityRowItem(activity: ActivityParticipation) {
             LinearProgressIndicator(
                 progress = activity.rate / 100f,
                 modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                color = if (activity.rate >= 80) Color(0xFF1B4332) else Color(0xFF8B4513),
+                color = if (activity.rate >= 80) Color(0xFF5E35B1) else Color(0xFF9C27B0),
                 trackColor = Color(0xFFE9ECEF)
             )
             Text("${activity.rate}%", fontSize = 10.sp, color = Color.Gray, modifier = Modifier.align(Alignment.End))
@@ -428,7 +443,7 @@ fun TopScoutsSection(scouts: List<ScoutParticipation>) {
         Text(
             "Top Participation Scouts",
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF1B4332),
+            color = Color(0xFF5E35B1),
             fontSize = 18.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -476,6 +491,6 @@ fun ScoutLeaderboardItem(scout: ScoutParticipation) {
             Spacer(modifier = Modifier.width(12.dp))
             Text(scout.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
-        Text("${scout.rate}%", fontWeight = FontWeight.Bold, color = Color(0xFF1B4332), fontSize = 14.sp)
+        Text("${scout.rate}%", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1), fontSize = 14.sp)
     }
 }

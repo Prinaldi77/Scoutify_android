@@ -41,16 +41,16 @@ fun DashboardTopAppBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
-                    painter = painterResource(id = R.drawable.logo_pramuka),
+                    painter = painterResource(id = R.drawable.logo_app),
                     contentDescription = null,
-                    modifier = Modifier.size(30.dp)
+                    modifier = Modifier.size(32.dp)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF1B4332),
+                    color = Color(0xFF5E35B1),
                     letterSpacing = 1.sp
                 )
             }
@@ -60,7 +60,7 @@ fun DashboardTopAppBar(
                 BadgedBox(
                     badge = { Badge(containerColor = Color.Red) { Text("2", color = Color.White) } }
                 ) {
-                    Icon(Icons.Default.NotificationsNone, contentDescription = "Notifications", tint = Color(0xFF1B4332))
+                    Icon(Icons.Default.NotificationsNone, contentDescription = "Notifications", tint = Color(0xFF5E35B1))
                 }
             }
         },
@@ -74,7 +74,7 @@ fun DashboardTopAppBar(
 @Composable
 fun HeaderUserSection(userProfile: ProfileData?) {
     val gradientBrush = Brush.horizontalGradient(
-        colors = listOf(Color(0xFF1B4332), Color(0xFF2D6A4F))
+        colors = listOf(Color(0xFF5E35B1), Color(0xFF9C27B0))
     )
 
     Card(
@@ -143,13 +143,14 @@ fun StatisticCard(
     containerColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    contentColor: Color = Color.Unspecified
+    contentColor: Color = Color.Unspecified,
+    height: androidx.compose.ui.unit.Dp = 115.dp
 ) {
-    val finalContentColor = if (contentColor != Color.Unspecified) contentColor else Color(0xFF1B4332)
+    val finalContentColor = if (contentColor != Color.Unspecified) contentColor else Color(0xFF5E35B1)
     
     Card(
         modifier = modifier
-            .height(115.dp)
+            .height(height)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
@@ -217,10 +218,10 @@ fun UpcomingActivityCard(
             }
             
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(activity.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF1B4332))
+                Text(activity.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1))
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, null, Modifier.size(16.dp), tint = Color(0xFF8B4513))
+                    Icon(Icons.Default.LocationOn, null, Modifier.size(16.dp), tint = Color(0xFF9C27B0))
                     Spacer(Modifier.width(6.dp))
                     Text(activity.location, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 }
@@ -229,7 +230,7 @@ fun UpcomingActivityCard(
                     onClick = onCheckInClick,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B4332))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1))
                 ) {
                     Icon(Icons.Default.QrCodeScanner, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
@@ -284,9 +285,9 @@ fun SectionHeader(title: String, onSeeAllClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1B4332))
+        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = Color(0xFF5E35B1))
         TextButton(onClick = onSeeAllClick) {
-            Text("Lihat Semua", fontWeight = FontWeight.Bold, color = Color(0xFF2D6A4F))
+            Text("Lihat Semua", fontWeight = FontWeight.Bold, color = Color(0xFF9C27B0))
         }
     }
 }
