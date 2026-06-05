@@ -17,6 +17,7 @@ import com.pab.scoutify.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
@@ -43,8 +44,11 @@ class AttendanceViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            val activityResource = repository.getCurrentActivity()
-            val statusResource = repository.getAttendanceStatus()
+            val activityDeferred = async { repository.getCurrentActivity() }
+            val statusDeferred = async { repository.getAttendanceStatus() }
+
+            val activityResource = activityDeferred.await()
+            val statusResource = statusDeferred.await()
 
             if (activityResource is Resource.Success<ActiveActivity>) {
                 val data = activityResource.data
@@ -62,8 +66,14 @@ class AttendanceViewModel @Inject constructor(
         }
     }
 
-    private fun startLocationUpdates() {
-        locationHelper.getLocationUpdates(5000L)
+    private var locationJob: kotlinx.coroutines.Job? = null
+
+    fun startLocationUpdates() {
+        locationJob?.cancel()
+        locationJob = locationHelper.getLocationUpdates(5000L)
+            .catch { e ->
+                _uiState.update { it.copy(errorMessage = "Gagal mengakses lokasi: ${e.localizedMessage}") }
+            }
             .onEach { location ->
                 val userLoc = UserLocation(location.latitude, location.longitude, location.accuracy)
                 _uiState.update { it.copy(userLocation = userLoc) }

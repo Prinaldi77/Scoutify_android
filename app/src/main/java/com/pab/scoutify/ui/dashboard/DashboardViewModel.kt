@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,29 +48,45 @@ class DashboardViewModel @Inject constructor(
     fun loadDashboardData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            try {
-                val profile = repository.getProfile()
-                val summary = repository.getDashboardSummary()
-                val upcoming = repository.getUpcomingActivities()
-                val notifications = repository.getLatestNotifications()
-
-                _uiState.update {
-                    it.copy(
-                        userProfile = profile,
-                        summary = summary,
-                        upcomingActivities = upcoming,
-                        latestNotifications = notifications,
-                        isLoading = false
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = e.localizedMessage ?: "Terjadi kesalahan saat memuat data"
-                    )
+            
+            val profileJob = launch {
+                try {
+                    val profile = repository.getProfile()
+                    _uiState.update { it.copy(userProfile = profile) }
+                } catch (e: Exception) {
+                    // Handle individually if needed
                 }
             }
+
+            val summaryJob = launch {
+                try {
+                    val summary = repository.getDashboardSummary()
+                    _uiState.update { it.copy(summary = summary) }
+                } catch (e: Exception) {
+                    // Handle individually if needed
+                }
+            }
+
+            val upcomingJob = launch {
+                try {
+                    val upcoming = repository.getUpcomingActivities()
+                    _uiState.update { it.copy(upcomingActivities = upcoming) }
+                } catch (e: Exception) {
+                    // Handle individually if needed
+                }
+            }
+
+            val notificationsJob = launch {
+                try {
+                    val notifications = repository.getLatestNotifications()
+                    _uiState.update { it.copy(latestNotifications = notifications) }
+                } catch (e: Exception) {
+                    // Handle individually if needed
+                }
+            }
+
+            kotlinx.coroutines.joinAll(profileJob, summaryJob, upcomingJob, notificationsJob)
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 

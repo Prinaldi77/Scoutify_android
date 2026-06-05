@@ -33,11 +33,16 @@ class LocationHelper @Inject constructor(
             }
         }
 
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            Looper.getMainLooper()
-        )
+        try {
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        } catch (e: SecurityException) {
+            close(e)
+            return@callbackFlow
+        }
 
         awaitClose {
             fusedLocationClient.removeLocationUpdates(locationCallback)

@@ -15,5 +15,5 @@ data class Kegiatan(
     val kategori: String?,
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val radius: Float? = null
+    val radius: Int? = null
 )

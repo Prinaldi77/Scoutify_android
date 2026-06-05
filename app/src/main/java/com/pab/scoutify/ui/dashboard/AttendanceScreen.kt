@@ -26,6 +26,12 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -36,6 +42,7 @@ import com.pab.scoutify.model.ActiveActivity
 import com.pab.scoutify.model.UserLocation
 import com.pab.scoutify.ui.dashboard.components.DashboardTopAppBar
 import com.pab.scoutify.utils.MapConfig
+import androidx.compose.ui.draw.clip
 
 @Composable
 fun AttendanceScreen(
@@ -46,13 +53,24 @@ fun AttendanceScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    var showBiometricError by remember { mutableStateOf<String?>(null) }
+
+    var hasLocationPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        if (permissions.values.all { it }) {
+        val granted = permissions.values.all { it }
+        hasLocationPermission = granted
+        if (granted) {
             viewModel.loadInitialData()
+            viewModel.startLocationUpdates()
         }
     }
 
@@ -118,7 +136,8 @@ fun AttendanceScreen(
                     MapCard(
                         activeActivity = uiState.activeActivity,
                         userLocation = uiState.userLocation,
-                        radius = uiState.activeActivity?.radius ?: 0
+                        radius = uiState.activeActivity?.radius ?: 0,
+                        isMyLocationEnabled = hasLocationPermission
                     )
 
                     RadiusStatusCard(
@@ -126,56 +145,15 @@ fun AttendanceScreen(
                         distance = uiState.distance
                     )
 
-                    // Biometric + Check-In Button
-                    AttendanceBiometricButton(
+                    // Swipe-to-Confirm Check-In Button
+                    AttendanceSwipeButton(
                         status = uiState.attendanceStatus,
                         isEnabled = uiState.isWithinRadius && !uiState.isLoading,
                         isLoading = uiState.isLoading,
                         onCheckIn = {
-                            val biometricManager = BiometricManager.from(context)
-                            val canAuthenticate = biometricManager.canAuthenticate(
-                                BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                                BiometricManager.Authenticators.DEVICE_CREDENTIAL
-                            )
-                            
-                            if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
-                                val executor = ContextCompat.getMainExecutor(context)
-                                val biometricPrompt = BiometricPrompt(
-                                    context as FragmentActivity,
-                                    executor,
-                                    object : BiometricPrompt.AuthenticationCallback() {
-                                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                                            super.onAuthenticationSucceeded(result)
-                                            viewModel.checkIn()
-                                        }
-                                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                                            super.onAuthenticationError(errorCode, errString)
-                                            showBiometricError = "Autentikasi dibatalkan: $errString"
-                                        }
-                                        override fun onAuthenticationFailed() {
-                                            super.onAuthenticationFailed()
-                                            showBiometricError = "Sidik jari tidak dikenali. Coba lagi."
-                                        }
-                                    }
-                                )
-                                
-                                val promptInfo = BiometricPrompt.PromptInfo.Builder()
-                                    .setTitle("Verifikasi Biometrik")
-                                    .setSubtitle("Gunakan sidik jari atau wajah untuk konfirmasi absen")
-                                    .setAllowedAuthenticators(
-                                        BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
-                                    )
-                                    .build()
-                                    
-                                biometricPrompt.authenticate(promptInfo)
-                            } else {
-                                // Biometric not available, go directly
-                                viewModel.checkIn()
-                            }
+                            viewModel.checkIn()
                         }
                     )
-
                     AttendanceFooter(uiState.activeActivity)
                     
                     Spacer(Modifier.height(24.dp))
@@ -183,27 +161,14 @@ fun AttendanceScreen(
             }
         }
     }
-
-    // Biometric Error Dialog
-    showBiometricError?.let { error ->
-        AlertDialog(
-            onDismissRequest = { showBiometricError = null },
-            title = { Text("Verifikasi Gagal", fontWeight = FontWeight.Bold, color = Color(0xFF5E35B1)) },
-            text = { Text(error) },
-            confirmButton = {
-                TextButton(onClick = { showBiometricError = null }) {
-                    Text("OK", color = Color(0xFF5E35B1))
-                }
-            }
-        )
-    }
 }
 
 @Composable
 fun MapCard(
     activeActivity: ActiveActivity?,
     userLocation: UserLocation?,
-    radius: Int
+    radius: Int,
+    isMyLocationEnabled: Boolean
 ) {
     val targetLatLng = remember(activeActivity) {
         if (activeActivity != null && activeActivity.latitude != 0.0) {
@@ -225,6 +190,17 @@ fun MapCard(
         }
     }
 
+    val mapProperties = remember(isMyLocationEnabled) {
+        MapProperties(isMyLocationEnabled = isMyLocationEnabled)
+    }
+    val mapUiSettings = remember(isMyLocationEnabled) {
+        MapUiSettings(
+            zoomControlsEnabled = false, 
+            myLocationButtonEnabled = isMyLocationEnabled,
+            mapToolbarEnabled = true
+        )
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -235,12 +211,8 @@ fun MapCard(
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
-            properties = MapProperties(isMyLocationEnabled = true),
-            uiSettings = MapUiSettings(
-                zoomControlsEnabled = false, 
-                myLocationButtonEnabled = true,
-                mapToolbarEnabled = true
-            )
+            properties = mapProperties,
+            uiSettings = mapUiSettings
         ) {
             if (activeActivity != null) {
                 Marker(
@@ -294,56 +266,6 @@ fun RadiusStatusCard(isWithinRadius: Boolean, distance: Double) {
                     style = MaterialTheme.typography.bodySmall,
                     color = color.copy(alpha = 0.8f)
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun AttendanceBiometricButton(
-    status: String,
-    isEnabled: Boolean,
-    isLoading: Boolean,
-    onCheckIn: () -> Unit
-) {
-    val isAlreadyCheckedIn = status.contains("Sudah", ignoreCase = true)
-    
-    Button(
-        onClick = onCheckIn,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(62.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isAlreadyCheckedIn) Color(0xFF9C27B0) else Color(0xFF5E35B1),
-            disabledContainerColor = Color.LightGray
-        ),
-        enabled = isEnabled && !isAlreadyCheckedIn
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    if (isAlreadyCheckedIn) Icons.Default.CheckCircle else Icons.Default.Fingerprint,
-                    contentDescription = null,
-                    modifier = Modifier.size(22.dp)
-                )
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = if (isAlreadyCheckedIn) "✓ Sudah Presensi" else "Presensi dengan Biometrik",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (!isAlreadyCheckedIn) {
-                        Text(
-                            text = "Verifikasi sidik jari + selfie",
-                            fontSize = 11.sp,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
-                    }
-                }
             }
         }
     }
@@ -415,5 +337,142 @@ fun AttendanceInfoItem(icon: ImageVector, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
         Text(label, fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+fun AttendanceSwipeButton(
+    status: String,
+    isEnabled: Boolean,
+    isLoading: Boolean,
+    onCheckIn: () -> Unit
+) {
+    val isAlreadyCheckedIn = status.contains("Sudah", ignoreCase = true)
+    
+    if (isAlreadyCheckedIn) {
+        Button(
+            onClick = {},
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(62.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF9C27B0),
+                disabledContainerColor = Color(0xFF9C27B0)
+            ),
+            enabled = false
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = Color.White
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    text = "✓ Sudah Presensi",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        }
+    } else {
+        SwipeToConfirmButton(
+            text = "Geser untuk Presensi",
+            onConfirm = onCheckIn,
+            isEnabled = isEnabled,
+            isLoading = isLoading,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun SwipeToConfirmButton(
+    text: String,
+    onConfirm: () -> Unit,
+    modifier: Modifier = Modifier,
+    isEnabled: Boolean = true,
+    isLoading: Boolean = false
+) {
+    var dragOffset by remember { mutableStateOf(0f) }
+    var isDragging by remember { mutableStateOf(false) }
+    var maxDragDistance by remember { mutableStateOf(0f) }
+    
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val thumbSize = 50.dp
+    val thumbSizePx = with(density) { thumbSize.toPx() }
+    
+    val animatedOffset by animateFloatAsState(
+        targetValue = if (isDragging) dragOffset else if (dragOffset >= maxDragDistance * 0.8f) maxDragDistance else 0f,
+        animationSpec = androidx.compose.animation.core.spring(),
+        label = "dragOffset"
+    )
+
+    LaunchedEffect(animatedOffset) {
+        if (!isDragging && animatedOffset == maxDragDistance && maxDragDistance > 0f) {
+            onConfirm()
+            dragOffset = 0f
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .clip(RoundedCornerShape(32.dp))
+            .background(if (isEnabled) Color(0xFF5E35B1) else Color.LightGray)
+            .onSizeChanged { size ->
+                maxDragDistance = size.width - thumbSizePx - with(density) { 12.dp.toPx() }
+            },
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Text(
+            text = if (isLoading) "Memproses..." else text,
+            color = if (isEnabled) Color.White.copy(alpha = 0.8f) else Color.DarkGray.copy(alpha = 0.5f),
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            modifier = Modifier.align(Alignment.Center)
+        )
+
+        if (!isLoading && isEnabled) {
+            Box(
+                modifier = Modifier
+                    .padding(6.dp)
+                    .offset { IntOffset(animatedOffset.roundToInt(), 0) }
+                    .size(thumbSize)
+                    .clip(CircleShape)
+                    .background(Color.White)
+                    .pointerInput(maxDragDistance) {
+                        if (maxDragDistance > 0f) {
+                            detectDragGestures(
+                                onDragStart = { isDragging = true },
+                                onDragEnd = {
+                                    isDragging = false
+                                    dragOffset = if (dragOffset < maxDragDistance * 0.8f) 0f else maxDragDistance
+                                },
+                                onDragCancel = {
+                                    isDragging = false
+                                    dragOffset = 0f
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    dragOffset = (dragOffset + dragAmount.x).coerceIn(0f, maxDragDistance)
+                                }
+                            )
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = null,
+                    tint = Color(0xFF5E35B1),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
     }
 }

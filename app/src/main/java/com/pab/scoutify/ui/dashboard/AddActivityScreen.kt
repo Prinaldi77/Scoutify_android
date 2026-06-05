@@ -1,6 +1,7 @@
 package com.pab.scoutify.ui.dashboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,6 +24,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.pab.scoutify.utils.MapConfig
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,6 +34,57 @@ fun AddActivityScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+
+    // Date Picker Dialog Setup
+    val datePickerDialog = android.app.DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val formattedDate = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth)
+            viewModel.onDateChange(formattedDate)
+        },
+        try {
+            val parts = uiState.date.split("-")
+            parts[0].toInt()
+        } catch (e: Exception) {
+            calendar.get(Calendar.YEAR)
+        },
+        try {
+            val parts = uiState.date.split("-")
+            parts[1].toInt() - 1
+        } catch (e: Exception) {
+            calendar.get(Calendar.MONTH)
+        },
+        try {
+            val parts = uiState.date.split("-")
+            parts[2].toInt()
+        } catch (e: Exception) {
+            calendar.get(Calendar.DAY_OF_MONTH)
+        }
+    )
+
+    // Time Picker Dialog Setup
+    val timePickerDialog = android.app.TimePickerDialog(
+        context,
+        { _, hourOfDay, minute ->
+            val formattedTime = String.format("%02d:%02d", hourOfDay, minute)
+            viewModel.onTimeChange(formattedTime)
+        },
+        try {
+            val parts = uiState.time.split(":")
+            parts[0].toInt()
+        } catch (e: Exception) {
+            calendar.get(Calendar.HOUR_OF_DAY)
+        },
+        try {
+            val parts = uiState.time.split(":")
+            parts[1].toInt()
+        } catch (e: Exception) {
+            calendar.get(Calendar.MINUTE)
+        },
+        true
+    )
     
     // State untuk Peta
     val defaultLoc = MapConfig.defaultLatLng
@@ -38,12 +92,26 @@ fun AddActivityScreen(
         position = CameraPosition.fromLatLngZoom(defaultLoc, MapConfig.DEFAULT_ZOOM)
     }
 
-    // Update ViewModel saat marker di peta digeser atau peta diklik
-    LaunchedEffect(cameraPositionState.position.target) {
-        viewModel.onLocationChange(
-            cameraPositionState.position.target.latitude,
-            cameraPositionState.position.target.longitude
-        )
+    // Sync map camera when loaded from ViewModel (only if target is different to prevent jump loop)
+    LaunchedEffect(uiState.latitude, uiState.longitude) {
+        val currentTarget = cameraPositionState.position.target
+        if (Math.abs(currentTarget.latitude - uiState.latitude) > 0.0001 || 
+            Math.abs(currentTarget.longitude - uiState.longitude) > 0.0001) {
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                LatLng(uiState.latitude, uiState.longitude),
+                MapConfig.DEFAULT_ZOOM
+            )
+        }
+    }
+
+    // Throttled: Update ViewModel saat marker di peta selesai digeser
+    LaunchedEffect(cameraPositionState.isMoving) {
+        if (!cameraPositionState.isMoving) {
+            viewModel.onLocationChange(
+                cameraPositionState.position.target.latitude,
+                cameraPositionState.position.target.longitude
+            )
+        }
     }
 
     LaunchedEffect(uiState.isSuccess) {
@@ -85,22 +153,52 @@ fun AddActivityScreen(
             )
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = uiState.date,
-                    onValueChange = { viewModel.onDateChange(it) },
-                    label = { Text("Tanggal (YYYY-MM-DD)") },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    leadingIcon = { Icon(Icons.Default.CalendarToday, null) }
-                )
-                OutlinedTextField(
-                    value = uiState.time,
-                    onValueChange = { viewModel.onTimeChange(it) },
-                    label = { Text("Waktu (HH:mm)") },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    leadingIcon = { Icon(Icons.Default.AccessTime, null) }
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { datePickerDialog.show() }
+                ) {
+                    OutlinedTextField(
+                        value = uiState.date,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Tanggal") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        leadingIcon = { Icon(Icons.Default.CalendarToday, null) },
+                        enabled = false,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                            disabledBorderColor = MaterialTheme.colorScheme.outline,
+                            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { timePickerDialog.show() }
+                ) {
+                    OutlinedTextField(
+                        value = uiState.time,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Waktu") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        leadingIcon = { Icon(Icons.Default.AccessTime, null) },
+                        enabled = false,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                            disabledBorderColor = MaterialTheme.colorScheme.outline,
+                            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                }
             }
 
             OutlinedTextField(

@@ -129,7 +129,20 @@ class SessionManager(context: Context) {
     fun isUserLogin(): Boolean = prefs.getBoolean(KEY_IS_LOGIN, false)
 
     fun logout() {
-        prefs.edit().clear().apply()
+        prefs.edit().apply {
+            remove(KEY_TOKEN)
+            remove(KEY_REFRESH_TOKEN)
+            remove(KEY_IS_LOGIN)
+            remove(KEY_USER_NAME)
+            remove(KEY_USER_EMAIL)
+            remove(KEY_PHOTO_URL)
+            remove(KEY_ROLE)
+            remove(KEY_GUGUS_DEPAN)
+            remove(KEY_NOMOR_INDUK)
+            remove(KEY_JABATAN)
+            remove("user_id")
+            apply()
+        }
     }
     
     fun clearSession() = logout()

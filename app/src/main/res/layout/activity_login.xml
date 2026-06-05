@@ -132,46 +132,43 @@
                         android:textSize="13sp"
                         android:textStyle="bold" />
 
-                    <!-- Login Button -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnLogin"
-                        style="@style/Widget.Scoutify.Button"
+                    <!-- Login Buttons -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="60dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="32dp"
-                        android:text="Sign In"
-                        android:textAllCaps="false"
-                        android:textSize="16sp"
-                        app:cornerRadius="20dp"
-                        app:elevation="4dp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnLogin"
+                            style="@style/Widget.Scoutify.Button"
+                            android:layout_width="0dp"
+                            android:layout_height="60dp"
+                            android:layout_weight="1"
+                            android:text="Sign In"
+                            android:textAllCaps="false"
+                            android:textSize="16sp"
+                            app:cornerRadius="20dp"
+                            app:elevation="4dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnBiometricLogin"
+                            style="@style/Widget.Material3.Button.IconButton.Filled"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:layout_marginStart="12dp"
+                            android:contentDescription="Biometric Login"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/primaryBrown"
+                            app:cornerRadius="20dp"
+                            app:icon="@drawable/ic_fingerprint"
+                            app:iconSize="28dp"
+                            app:iconTint="@color/white" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <!-- Register Link -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="32dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Don't have an account? "
-                    android:textColor="#D7CCC8"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/tvRegister"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Create Account"
-                    android:textColor="@color/white"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

@@ -32,10 +32,14 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val userRole = uiState.userProfile?.role?.lowercase() ?: "siswa"
+    val unreadCount = uiState.latestNotifications.count { !it.isRead }
 
     Scaffold(
         topBar = {
-            DashboardTopAppBar(onNotificationClick = onNavigateToNotifications)
+            DashboardTopAppBar(
+                unreadCount = unreadCount,
+                onNotificationClick = onNavigateToNotifications
+            )
         }
     ) { padding ->
         Box(
@@ -132,32 +136,16 @@ fun DashboardScreen(
                             SectionHeader(title = "Capaian Saya", onSeeAllClick = { onNavigateToAttendance(0) })
                         }
                         item {
-                            Row(
+                            StatisticCard(
+                                title = "Kehadiran",
+                                value = "${uiState.summary?.todayAttendance ?: 0}%",
+                                icon = Icons.Default.Timeline,
+                                containerColor = Color(0xFF5E35B1),
+                                contentColor = Color.White,
+                                onClick = { onNavigateToAttendance(0) },
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                StatisticCard(
-                                    title = "Kehadiran",
-                                    value = "${uiState.summary?.todayAttendance ?: 0}%",
-                                    icon = Icons.Default.Timeline,
-                                    containerColor = Color(0xFF5E35B1),
-                                    contentColor = Color.White,
-                                    onClick = { onNavigateToAttendance(0) },
-                                    modifier = Modifier.weight(1.2f),
-                                    height = 125.dp
-                                )
-                                StatisticCard(
-                                    title = "Poin SKU",
-                                    value = "12/24",
-                                    icon = Icons.Default.MilitaryTech,
-                                    containerColor = Color(0xFFFFB300),
-                                    contentColor = Color(0xFF4A0E4E),
-                                    onClick = { /* Target SKU */ },
-                                    modifier = Modifier.weight(0.8f),
-                                    height = 110.dp
-                                )
-                            }
+                                height = 125.dp
+                            )
                         }
                     }
 

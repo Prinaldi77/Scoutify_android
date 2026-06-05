@@ -21,6 +21,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import com.pab.scoutify.ui.auth.LoginActivity
 import com.pab.scoutify.ui.auth.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -104,7 +107,11 @@ class DashboardActivity : ComponentActivity() {
                     NavHost(
                         navController = navController,
                         startDestination = "home",
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier.padding(innerPadding),
+                        enterTransition = { fadeIn(animationSpec = tween(200)) },
+                        exitTransition = { fadeOut(animationSpec = tween(200)) },
+                        popEnterTransition = { fadeIn(animationSpec = tween(200)) },
+                        popExitTransition = { fadeOut(animationSpec = tween(200)) }
                     ) {
                         composable("home") {
                             DashboardScreen(

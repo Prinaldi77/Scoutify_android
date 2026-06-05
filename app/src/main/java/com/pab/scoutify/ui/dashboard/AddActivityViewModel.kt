@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.pab.scoutify.utils.MapConfig
+import kotlin.math.roundToInt
 
 data class AddActivityUiState(
     val isLoading: Boolean = false,
@@ -66,7 +67,7 @@ class AddActivityViewModel @Inject constructor(
                             category = kegiatan.kategori ?: "Aktif",
                             latitude = kegiatan.latitude ?: -6.200000,
                             longitude = kegiatan.longitude ?: 106.816666,
-                            radius = kegiatan.radius ?: 100f
+                            radius = kegiatan.radius?.toFloat() ?: 100f
                         ) }
                     }
                     is Resource.Error -> _uiState.update { it.copy(isLoading = false, errorMessage = resource.message) }
@@ -102,7 +103,7 @@ class AddActivityViewModel @Inject constructor(
                 kategori = state.category,
                 latitude = state.latitude,
                 longitude = state.longitude,
-                radius = state.radius
+                radius = state.radius.roundToInt()
             )
 
             val flow = if (activityId != null) {

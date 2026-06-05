@@ -74,7 +74,7 @@ fun SelfieVerificationScreen(
         }
     }
 
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     var lensFacing by remember { mutableStateOf(CameraSelector.LENS_FACING_FRONT) }
     val preview = remember { Preview.Builder().build() }
     val imageCapture = remember { ImageCapture.Builder().build() }
@@ -85,9 +85,22 @@ fun SelfieVerificationScreen(
     }
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
 
-    LaunchedEffect(lensFacing, hasCameraPermission) {
+    LaunchedEffect(hasCameraPermission) {
         if (hasCameraPermission) {
-            val cameraProvider = cameraProviderFuture.get()
+            val future = ProcessCameraProvider.getInstance(context)
+            future.addListener({
+                try {
+                    cameraProvider = future.get()
+                } catch (e: Exception) {
+                    Log.e("SelfieScreen", "Failed to get camera provider", e)
+                }
+            }, ContextCompat.getMainExecutor(context))
+        }
+    }
+
+    LaunchedEffect(lensFacing, cameraProvider, hasCameraPermission) {
+        val provider = cameraProvider
+        if (hasCameraPermission && provider != null) {
             val cameraSelector = CameraSelector.Builder()
                 .requireLensFacing(lensFacing)
                 .build()
@@ -101,8 +114,8 @@ fun SelfieVerificationScreen(
             }
 
             try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
+                provider.unbindAll()
+                provider.bindToLifecycle(
                     lifecycleOwner,
                     cameraSelector,
                     preview,

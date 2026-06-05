@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
+import org.json.JSONObject
 
 @Singleton
 class ActivitiesRepository @Inject constructor(
@@ -30,7 +31,17 @@ class ActivitiesRepository @Inject constructor(
                     emit(Resource.Error("Gagal memuat data: Respons kosong"))
                 }
             } else {
-                emit(Resource.Error("Error: ${response.code()} ${response.message()}"))
+                val errorMsg = try {
+                    val errorStr = response.errorBody()?.string()
+                    if (!errorStr.isNullOrEmpty()) {
+                        JSONObject(errorStr).optString("message", "Error: ${response.code()} ${response.message()}")
+                    } else {
+                        "Error: ${response.code()} ${response.message()}"
+                    }
+                } catch (e: Exception) {
+                    "Error: ${response.code()} ${response.message()}"
+                }
+                emit(Resource.Error(errorMsg))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi"))
@@ -49,7 +60,17 @@ class ActivitiesRepository @Inject constructor(
                     emit(Resource.Error("Gagal menyimpan data: Respons kosong"))
                 }
             } else {
-                emit(Resource.Error("Error: ${response.code()} ${response.message()}"))
+                val errorMsg = try {
+                    val errorStr = response.errorBody()?.string()
+                    if (!errorStr.isNullOrEmpty()) {
+                        JSONObject(errorStr).optString("message", "Error: ${response.code()} ${response.message()}")
+                    } else {
+                        "Error: ${response.code()} ${response.message()}"
+                    }
+                } catch (e: Exception) {
+                    "Error: ${response.code()} ${response.message()}"
+                }
+                emit(Resource.Error(errorMsg))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi"))
@@ -68,7 +89,17 @@ class ActivitiesRepository @Inject constructor(
                     emit(Resource.Error("Gagal memuat detail kegiatan: Respons kosong"))
                 }
             } else {
-                emit(Resource.Error("Error: ${response.code()} ${response.message()}"))
+                val errorMsg = try {
+                    val errorStr = response.errorBody()?.string()
+                    if (!errorStr.isNullOrEmpty()) {
+                        JSONObject(errorStr).optString("message", "Error: ${response.code()} ${response.message()}")
+                    } else {
+                        "Error: ${response.code()} ${response.message()}"
+                    }
+                } catch (e: Exception) {
+                    "Error: ${response.code()} ${response.message()}"
+                }
+                emit(Resource.Error(errorMsg))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi"))
@@ -87,7 +118,17 @@ class ActivitiesRepository @Inject constructor(
                     emit(Resource.Error("Gagal memperbarui kegiatan: Respons kosong"))
                 }
             } else {
-                emit(Resource.Error("Error: ${response.code()} ${response.message()}"))
+                val errorMsg = try {
+                    val errorStr = response.errorBody()?.string()
+                    if (!errorStr.isNullOrEmpty()) {
+                        JSONObject(errorStr).optString("message", "Error: ${response.code()} ${response.message()}")
+                    } else {
+                        "Error: ${response.code()} ${response.message()}"
+                    }
+                } catch (e: Exception) {
+                    "Error: ${response.code()} ${response.message()}"
+                }
+                emit(Resource.Error(errorMsg))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Terjadi kesalahan koneksi"))

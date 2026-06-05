@@ -35,6 +35,7 @@ import com.pab.scoutify.model.UpcomingActivity
 @Composable
 fun DashboardTopAppBar(
     title: String = "Scoutify",
+    unreadCount: Int = 0,
     onNotificationClick: () -> Unit
 ) {
     CenterAlignedTopAppBar(
@@ -57,9 +58,13 @@ fun DashboardTopAppBar(
         },
         actions = {
             IconButton(onClick = onNotificationClick) {
-                BadgedBox(
-                    badge = { Badge(containerColor = Color.Red) { Text("2", color = Color.White) } }
-                ) {
+                if (unreadCount > 0) {
+                    BadgedBox(
+                        badge = { Badge(containerColor = Color.Red) { Text(unreadCount.toString(), color = Color.White) } }
+                    ) {
+                        Icon(Icons.Default.NotificationsNone, contentDescription = "Notifications", tint = Color(0xFF5E35B1))
+                    }
+                } else {
                     Icon(Icons.Default.NotificationsNone, contentDescription = "Notifications", tint = Color(0xFF5E35B1))
                 }
             }

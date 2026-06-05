@@ -24,10 +24,9 @@ class FaceDetectionHelper @Inject constructor() {
 
     @SuppressLint("UnsafeOptInUsageError")
     suspend fun detectFaces(imageProxy: ImageProxy): List<Face> {
-        val mediaImage = imageProxy.image ?: return emptyList()
-        val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-        
         return try {
+            val mediaImage = imageProxy.image ?: return emptyList()
+            val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
             detector.process(image).await()
         } catch (e: Exception) {
             emptyList()

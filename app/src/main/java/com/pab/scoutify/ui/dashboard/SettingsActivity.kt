@@ -1,16 +1,28 @@
 package com.pab.scoutify.ui.dashboard
 
+import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputEditText
 import com.pab.scoutify.R
+import com.pab.scoutify.api.RetrofitClient
+import com.pab.scoutify.model.request.UpdateProfileRequest
+import com.pab.scoutify.ui.auth.LoginActivity
 import com.pab.scoutify.ui.auth.SessionManager
+import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -38,6 +50,14 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // 3. Set dynamic handlers for standard settings options
+        findViewById<LinearLayout>(R.id.btnEditProfile).setOnClickListener {
+            showEditProfileDialog()
+        }
+
+        findViewById<LinearLayout>(R.id.btnSettingsLogout).setOnClickListener {
+            showLogoutConfirmationDialog()
+        }
+
         findViewById<LinearLayout>(R.id.btnDigitalIdCard).setOnClickListener {
             Toast.makeText(this, "Kartu ID Digital Pramuka Anda sedang dimuat... 🪪✨", Toast.LENGTH_SHORT).show()
         }
@@ -51,11 +71,6 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // 4. Set dynamic editable handlers for Admin Section
-        findViewById<LinearLayout>(R.id.btnKelolaEvent).setOnClickListener {
-            showSimpleEditDialog("Kelola Event Baru", "Nama Event/Kegiatan Baru", "Contoh: Kemah Bakti Pramuka") { input ->
-                Toast.makeText(this, "Sukses merilis event baru: '$input'! 📅", Toast.LENGTH_LONG).show()
-            }
-        }
 
         findViewById<LinearLayout>(R.id.btnKelolaLokasi).setOnClickListener {
             showEditGeofenceDialog()
@@ -107,6 +122,39 @@ class SettingsActivity : AppCompatActivity() {
         etRad.setText(sessionManager.getGeofenceRadius().toString())
         etStart.setText(sessionManager.getAttendanceStartTime())
         etEnd.setText(sessionManager.getAttendanceEndTime())
+
+        // Time pickers for etStart and etEnd
+        etStart.isFocusable = false
+        etStart.isClickable = true
+        etStart.setOnClickListener {
+            val currentVal = etStart.text.toString().trim()
+            var hour = 0
+            var minute = 0
+            if (currentVal.isNotEmpty() && currentVal.contains(":")) {
+                val parts = currentVal.split(":")
+                hour = parts[0].toIntOrNull() ?: 0
+                minute = parts[1].toIntOrNull() ?: 0
+            }
+            android.app.TimePickerDialog(this, { _, selectedHour, selectedMinute ->
+                etStart.setText(String.format("%02d:%02d", selectedHour, selectedMinute))
+            }, hour, minute, true).show()
+        }
+
+        etEnd.isFocusable = false
+        etEnd.isClickable = true
+        etEnd.setOnClickListener {
+            val currentVal = etEnd.text.toString().trim()
+            var hour = 23
+            var minute = 59
+            if (currentVal.isNotEmpty() && currentVal.contains(":")) {
+                val parts = currentVal.split(":")
+                hour = parts[0].toIntOrNull() ?: 23
+                minute = parts[1].toIntOrNull() ?: 59
+            }
+            android.app.TimePickerDialog(this, { _, selectedHour, selectedMinute ->
+                etEnd.setText(String.format("%02d:%02d", selectedHour, selectedMinute))
+            }, hour, minute, true).show()
+        }
 
         dialogView.findViewById<View>(R.id.btnCancelGeofence).setOnClickListener {
             dialog.dismiss()
@@ -161,21 +209,66 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showChangePasswordDialog() {
-        val input = EditText(this).apply {
-            hint = "Masukkan Password Baru"
-            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             setPadding(50, 40, 50, 40)
         }
+        
+        val etOldPassword = EditText(this).apply {
+            hint = "Password Saat Ini"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 0, 0, 20)
+            }
+        }
+        
+        val etNewPassword = EditText(this).apply {
+            hint = "Password Baru (Min. 6 Karakter)"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        
+        container.addView(etOldPassword)
+        container.addView(etNewPassword)
 
         AlertDialog.Builder(this)
             .setTitle("🔒 Ubah Password Keamanan")
-            .setMessage("Masukkan password baru Anda:")
-            .setView(input)
+            .setMessage("Masukkan password saat ini dan password baru Anda:")
+            .setView(container)
             .setPositiveButton("Perbarui") { dialog, _ ->
-                val text = input.text.toString().trim()
-                if (text.isNotEmpty()) {
-                    Toast.makeText(this, "Password Keamanan Anda berhasil diperbarui! 🔒", Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
+                val oldPwd = etOldPassword.text.toString().trim()
+                val newPwd = etNewPassword.text.toString().trim()
+                
+                if (oldPwd.isEmpty() || newPwd.isEmpty()) {
+                    Toast.makeText(this, "Harap isi semua field!", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                if (newPwd.length < 6) {
+                    Toast.makeText(this, "Password baru minimal 6 karakter!", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                lifecycleScope.launch {
+                    try {
+                        val request = com.pab.scoutify.model.request.ChangePasswordRequest(oldPwd, newPwd)
+                        val response = RetrofitClient.instance.changePassword(request)
+                        if (response.isSuccessful && response.body()?.success == true) {
+                            // Update saved password for biometric login
+                            sessionManager.prefs.edit().putString("saved_password", newPwd).apply()
+                            Toast.makeText(this@SettingsActivity, "Password berhasil diubah! ✅", Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                        } else {
+                            val errorMsg = try {
+                                val json = response.errorBody()?.string()
+                                org.json.JSONObject(json ?: "{}").getString("message")
+                            } catch (e: Exception) { "Gagal mengubah password." }
+                            Toast.makeText(this@SettingsActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(this@SettingsActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
             .setNegativeButton("Batal") { dialog, _ ->
@@ -183,6 +276,164 @@ class SettingsActivity : AppCompatActivity() {
             }
             .show()
     }
+
+    private fun showEditProfileDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_profile, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val etName = dialogView.findViewById<TextInputEditText>(R.id.etEditName)
+        val etEmail = dialogView.findViewById<TextInputEditText>(R.id.etEditEmail)
+        val etPassword = dialogView.findViewById<TextInputEditText>(R.id.etEditPassword)
+        val layoutEmoji = dialogView.findViewById<LinearLayout>(R.id.layoutEmojiContainer)
+        val layoutColor = dialogView.findViewById<LinearLayout>(R.id.layoutColorContainer)
+
+        // Populate current values
+        etName.setText(sessionManager.getUserName())
+        etEmail.setText(sessionManager.getUserEmail())
+        etEmail.isEnabled = false // Email is read-only
+
+        var selectedEmoji = sessionManager.getUserAvatarEmoji()
+        var selectedColor = sessionManager.getUserAvatarColor()
+
+        // Populate Emojis
+        val emojiList = listOf("🏕️", "🧭", "🔥", "🦅", "🐯", "🦁", "🌟", "🎗️", "🎒", "🪓")
+        val emojiCardViews = mutableListOf<MaterialCardView>()
+
+        emojiList.forEach { emoji ->
+            val card = MaterialCardView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(120, 120).apply { setMargins(12, 8, 12, 8) }
+                radius = 60f
+                strokeWidth = if (emoji == selectedEmoji) 6 else 0
+                strokeColor = ContextCompat.getColor(this@SettingsActivity, R.color.primaryBrown)
+                cardElevation = 2f
+                setCardBackgroundColor(Color.parseColor("#F5F5F5"))
+            }
+            val tv = TextView(this).apply {
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                gravity = Gravity.CENTER
+                textSize = 24f
+                text = emoji
+            }
+            card.addView(tv)
+            card.setOnClickListener {
+                selectedEmoji = emoji
+                emojiCardViews.forEach { it.strokeWidth = 0 }
+                card.strokeWidth = 6
+            }
+            emojiCardViews.add(card)
+            layoutEmoji.addView(card)
+        }
+
+        // Populate Colors
+        val colorList = listOf("#8D6E63", "#4E342E", "#2E7D32", "#1B5E20", "#EF6C00", "#D84315", "#00695C", "#1565C0")
+        val colorCardViews = mutableListOf<MaterialCardView>()
+
+        colorList.forEach { colorStr ->
+            val card = MaterialCardView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(100, 100).apply { setMargins(12, 8, 12, 8) }
+                radius = 50f
+                strokeWidth = if (colorStr == selectedColor) 6 else 0
+                strokeColor = Color.parseColor("#FFFFFF")
+                cardElevation = 2f
+                setCardBackgroundColor(Color.parseColor(colorStr))
+            }
+            card.setOnClickListener {
+                selectedColor = colorStr
+                colorCardViews.forEach { it.strokeWidth = 0 }
+                card.strokeWidth = 6
+            }
+            colorCardViews.add(card)
+            layoutColor.addView(card)
+        }
+
+        dialogView.findViewById<View>(R.id.btnCancelEdit).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<View>(R.id.btnSaveEdit).setOnClickListener {
+            val newName = etName.text.toString().trim()
+            val newPassword = etPassword.text.toString().trim()
+
+            if (newName.isEmpty()) {
+                Toast.makeText(this, "Nama tidak boleh kosong!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (newPassword.isNotEmpty() && newPassword.length < 6) {
+                Toast.makeText(this, "Password baru minimal 6 karakter!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Save local cosmetics immediately
+            sessionManager.saveUserAvatarEmoji(selectedEmoji)
+            sessionManager.saveUserAvatarColor(selectedColor)
+
+            // Call backend API
+            val btnSave = dialogView.findViewById<View>(R.id.btnSaveEdit)
+            btnSave.isEnabled = false
+
+            lifecycleScope.launch {
+                try {
+                    val request = UpdateProfileRequest(
+                        name = newName,
+                        password = if (newPassword.isNotEmpty()) newPassword else null
+                    )
+                    val response = RetrofitClient.instance.updateProfile(request)
+                    if (response.isSuccessful && response.body()?.success == true) {
+                        sessionManager.saveUserName(newName)
+                        if (newPassword.isNotEmpty()) {
+                            sessionManager.prefs.edit().putString("saved_password", newPassword).apply()
+                        }
+                        Toast.makeText(
+                            this@SettingsActivity,
+                            "Profil berhasil diperbarui! ✅" + if (newPassword.isNotEmpty()) " Password baru aktif." else "",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        dialog.dismiss()
+                    } else {
+                        val errorMsg = try {
+                            val json = response.errorBody()?.string()
+                            org.json.JSONObject(json ?: "{}").getString("message")
+                        } catch (e: Exception) { "Gagal menyimpan perubahan." }
+                        Toast.makeText(this@SettingsActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@SettingsActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                } finally {
+                    btnSave.isEnabled = true
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Konfirmasi Keluar")
+            .setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
+            .setPositiveButton("Keluar") { dialog, _ ->
+                lifecycleScope.launch {
+                    try {
+                        RetrofitClient.instance.logout()
+                    } catch (e: Exception) {
+                        // Ignore and clear session anyway
+                    }
+                    sessionManager.clearSession()
+                    val intent = Intent(this@SettingsActivity, LoginActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
+                    Toast.makeText(this@SettingsActivity, "Berhasil keluar dari akun! 😊", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
 
     private fun showManageAccessDialog() {
         val context = this

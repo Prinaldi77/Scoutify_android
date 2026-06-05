@@ -144,12 +144,6 @@ fun ProfileScreen(
 
                 InfoMembershipSection(profile = uiState.profile)
 
-                AccountSettingsSection(
-                    onEditProfile = { showEditDialog = true },
-                    onChangePassword = { showPasswordDialog = true },
-                    onLogout = { showLogoutDialog = true }
-                )
-
                 Text(
                     text = "Scoutify v2.4.0\nDibuat dengan semangat kepanduan",
                     style = MaterialTheme.typography.bodySmall,
@@ -441,26 +435,6 @@ fun MembershipItem(icon: ImageVector, label: String, value: String) {
     }
 }
 
-@Composable
-fun AccountSettingsSection(onEditProfile: () -> Unit, onChangePassword: () -> Unit, onLogout: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("PENGATURAN AKUN", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE9ECEF))
-        ) {
-            Column {
-                ProfileMenuItem(Icons.Default.Edit, "Edit Profil", onClick = onEditProfile)
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F5))
-                ProfileMenuItem(Icons.Default.History, "Ganti Password", onClick = onChangePassword)
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F5))
-                ProfileMenuItem(Icons.AutoMirrored.Filled.Logout, "Logout", textColor = Color.Red, onClick = onLogout)
-            }
-        }
-    }
-}
 
 @Composable
 fun ProfileMenuItem(icon: ImageVector, label: String, textColor: Color = Color.Unspecified, onClick: () -> Unit) {

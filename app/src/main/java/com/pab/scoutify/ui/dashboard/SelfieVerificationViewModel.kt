@@ -75,8 +75,9 @@ class SelfieVerificationViewModel @Inject constructor(
         latitude: Double,
         longitude: Double
     ) {
+        val cacheDir = context.externalCacheDir ?: context.cacheDir
         val photoFile = File(
-            context.externalCacheDir,
+            cacheDir,
             SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(System.currentTimeMillis()) + ".jpg"
         )
 
