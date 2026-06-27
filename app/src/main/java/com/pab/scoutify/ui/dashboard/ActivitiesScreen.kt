@@ -37,6 +37,10 @@ fun ActivitiesScreen(
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        viewModel.loadActivities(uiState.selectedCategory, searchQuery.ifBlank { null })
+    }
+
     Scaffold(
         containerColor = Color(0xFFF9F9F6),
         topBar = {

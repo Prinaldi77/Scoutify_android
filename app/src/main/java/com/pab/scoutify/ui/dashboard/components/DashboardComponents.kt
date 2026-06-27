@@ -209,7 +209,7 @@ fun UpcomingActivityCard(
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
-                    error = painterResource(id = R.drawable.bg_gradient_brown)
+                    error = painterResource(id = R.drawable.logo_pramuka)
                 )
                 Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)))))
                 

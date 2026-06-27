@@ -38,6 +38,10 @@ fun ActivityManagementScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.loadActivities(uiState.selectedTab)
+    }
+
     Scaffold(
         containerColor = Color(0xFFF5F2FA),
         topBar = {

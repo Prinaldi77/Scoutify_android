@@ -53,23 +53,13 @@ class DashboardActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val userRole = sessionManager.getRole().lowercase()
 
-                // Role-based Menu Items
-                val items = if (userRole == "pembina" || userRole == "admin") {
-                    listOf(
-                        BottomNavItem("Beranda", "home", Icons.Default.Home),
-                        BottomNavItem("Kegiatan", "activities", Icons.AutoMirrored.Filled.List),
-                        BottomNavItem("Anggota", "management", Icons.Default.Groups),
-                        BottomNavItem("Laporan", "reports", Icons.Default.Assessment),
-                        BottomNavItem("Profil", "profile", Icons.Default.Person)
-                    )
-                } else {
-                    listOf(
-                        BottomNavItem("Beranda", "home", Icons.Default.Home),
-                        BottomNavItem("Kegiatan", "activities", Icons.AutoMirrored.Filled.List),
-                        BottomNavItem("Presensi", "attendance", Icons.AutoMirrored.Filled.Assignment),
-                        BottomNavItem("Profil", "profile", Icons.Default.Person)
-                    )
-                }
+                // Student-only Menu Items
+                val items = listOf(
+                    BottomNavItem("Beranda", "home", Icons.Default.Home),
+                    BottomNavItem("Profil", "profile", Icons.Default.Person),
+                    BottomNavItem("Kalender", "kalender", Icons.Default.DateRange),
+                    BottomNavItem("Lainnya", "menu_lainnya", Icons.Default.Menu)
+                )
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -115,57 +105,37 @@ class DashboardActivity : ComponentActivity() {
                     ) {
                         composable("home") {
                             DashboardScreen(
-                                onNavigateToAttendance = { _ ->
-                                    if (userRole == "pembina" || userRole == "admin") {
-                                        navController.navigate("reports")
-                                    } else {
-                                        navController.navigate("attendance")
-                                    }
+                                onNavigateToAttendance = { activityId ->
+                                    // Direct check-in to Selfie Verification screen
+                                    navController.navigate("selfie/$activityId/0/-7.0278/107.5756")
                                 },
-                                onNavigateToActivities = { navController.navigate("activities") },
-                                onNavigateToNotifications = { navController.navigate("notifications") },
-                                onNavigateToManagement = { navController.navigate("management") }
+                                onNavigateToActivities = { navController.navigate("kalender") },
+                                onNavigateToNotifications = { navController.navigate("notifications") }
                             )
                         }
-                        composable("activities") {
-                            if (userRole == "pembina" || userRole == "admin") {
-                                ActivityManagementScreen(
-                                    onMenuClick = { },
-                                    onSearchClick = { },
-                                    onAddActivityClick = { navController.navigate("add_activity") },
-                                    onEditActivity = { activityId -> navController.navigate("edit_activity/$activityId") },
-                                    onCheckDetail = { navController.navigate("reports") }
-                                )
-                            } else {
-                                ActivitiesScreen(
-                                    onNavigateToDetail = { },
-                                    onNotificationClick = { navController.navigate("notifications") }
-                                )
-                            }
-                        }
-                        composable("add_activity") {
-                            AddActivityScreen(
+                        // Anggota route removed (replaced by profile tab)
+                        composable("kalender") {
+                            KalenderScreen(
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
-                        composable("edit_activity/{activityId}") {
-                            AddActivityScreen(
-                                onNavigateBack = { navController.popBackStack() }
-                            )
-                        }
-                        composable("attendance") {
-                            AttendanceScreen(
-                                onNavigateToNotifications = { navController.navigate("notifications") },
-                                onNavigateToSelfie = { activityId, attendanceId, lat, lng ->
-                                    navController.navigate("selfie/$activityId/$attendanceId/$lat/$lng")
+                        composable("menu_lainnya") {
+                            MenuLainnyaScreen(
+                                onNavigateToProfile = { navController.navigate("profile") },
+                                onLogoutSuccess = {
+                                    sessionManager.clearSession()
+                                    val intent = Intent(this@DashboardActivity, LoginActivity::class.java)
+                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    startActivity(intent)
+                                    finish()
                                 }
                             )
                         }
                         composable("selfie/{activityId}/{attendanceId}/{lat}/{lng}") { backStackEntry ->
                             val activityId = backStackEntry.arguments?.getString("activityId")?.toLongOrNull() ?: 0L
                             val attendanceId = backStackEntry.arguments?.getString("attendanceId")?.toLongOrNull() ?: 0L
-                            val lat = backStackEntry.arguments?.getString("lat")?.toDoubleOrNull() ?: -6.9726
-                            val lng = backStackEntry.arguments?.getString("lng")?.toDoubleOrNull() ?: 107.5908
+                            val lat = backStackEntry.arguments?.getString("lat")?.toDoubleOrNull() ?: -7.0278
+                            val lng = backStackEntry.arguments?.getString("lng")?.toDoubleOrNull() ?: 107.5756
                             SelfieVerificationScreen(
                                 activityId = activityId,
                                 attendanceId = attendanceId,
@@ -173,46 +143,23 @@ class DashboardActivity : ComponentActivity() {
                                 longitude = lng,
                                 onNavigateBack = { navController.popBackStack() },
                                 onSuccess = {
-                                    navController.navigate("attendance") {
-                                        popUpTo("attendance") { inclusive = true }
+                                    navController.navigate("home") {
+                                        popUpTo("home") { inclusive = true }
                                     }
                                 }
                             )
                         }
-                        composable("management") {
-                            ManagementScreen(
-                                onMenuClick = { /* Optional */ },
-                                onSearchClick = { /* Optional */ },
-                                onAddMemberClick = { navController.navigate("add_member") },
-                                onMemberClick = { memberId -> navController.navigate("member_detail/$memberId") }
-                            )
-                        }
-                        composable("add_member") {
-                            AddMemberScreen(
-                                onNavigateBack = { navController.popBackStack() }
-                            )
-                        }
-                        composable("member_detail/{memberId}") {
-                            MemberDetailScreen(
-                                onNavigateBack = { navController.popBackStack() },
-                                onEditData = { memberId -> navController.navigate("edit_member/$memberId") }
-                            )
-                        }
-                        composable("edit_member/{memberId}") {
-                            AddMemberScreen(
-                                onNavigateBack = { navController.popBackStack() }
-                            )
-                        }
-                        composable("reports") {
-                            AttendanceReportScreen(
-                                onMenuClick = { /* Optional */ },
-                                onSearchClick = { /* Optional */ },
-                                onProfileClick = { navController.navigate("profile") }
-                            )
-                        }
                         composable("profile") {
                             ProfileScreen(
-                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateBack = {
+                                    navController.navigate("home") {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
                                 onEditProfile = { },
                                 onChangePassword = { },
                                 onSettingsClick = {

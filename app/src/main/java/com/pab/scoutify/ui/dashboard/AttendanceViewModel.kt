@@ -176,4 +176,30 @@ class AttendanceViewModel @Inject constructor(
             }
         }
     }
+
+    fun submitPermit(reason: String, type: String) {
+        val activity = _uiState.value.activeActivity
+        if (activity == null) {
+            _uiState.update { it.copy(errorMessage = "Tidak ada kegiatan aktif") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val mediaType = "text/plain".toMediaTypeOrNull()
+            val kegiatanIdBody = activity.id.toString().toRequestBody(mediaType)
+            val reasonBody = reason.toRequestBody(mediaType)
+            val typeBody = type.toRequestBody(mediaType)
+
+            val result = repository.submitPermit(kegiatanIdBody, reasonBody, typeBody, null)
+            _uiState.update { it.copy(isLoading = false) }
+
+            if (result is Resource.Success) {
+                _uiState.update { state -> state.copy(attendanceStatus = "Izin/Sakit Diajukan") }
+                refreshAttendanceStatus()
+            } else if (result is Resource.Error) {
+                _uiState.update { it.copy(errorMessage = result.message) }
+            }
+        }
+    }
 }

@@ -32,7 +32,6 @@ object NetworkModule {
         sessionManager: SessionManager
     ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                 sessionManager.fetchAuthToken()?.let {
@@ -40,6 +39,7 @@ object NetworkModule {
                 }
                 chain.proceed(request.build())
             }
+            .addInterceptor(loggingInterceptor)
             .build()
     }
 

@@ -129,4 +129,8 @@ interface ApiService {
 
     @PUT("notifications/read-all")
     suspend fun markAllNotificationsRead(): Response<BaseResponse<Any>>
+
+    // ─── PIKET ──────────────────────────────────────────────
+    @GET("piket")
+    suspend fun getPiket(): Response<BaseResponse<List<Piket>>>
 }

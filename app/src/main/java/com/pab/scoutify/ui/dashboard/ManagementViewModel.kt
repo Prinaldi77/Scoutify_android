@@ -16,7 +16,7 @@ data class ManagementUiState(
     val filteredMembers: List<Anggota> = emptyList(),
     val errorMessage: String? = null,
     val searchQuery: String = "",
-    val selectedFilter: String = "All Members",
+    val selectedFilter: String = "Semua Anggota",
     val stats: MemberStats = MemberStats()
 )
 
@@ -88,7 +88,7 @@ class ManagementViewModel @Inject constructor(
             val matchesSearch = member.nama?.contains(currentState.searchQuery, ignoreCase = true) == true ||
                     member.nisn?.contains(currentState.searchQuery, ignoreCase = true) == true
             
-            val matchesFilter = if (currentState.selectedFilter == "All Members") {
+            val matchesFilter = if (currentState.selectedFilter == "Semua Anggota" || currentState.selectedFilter == "All Members") {
                 true
             } else {
                 member.regu?.equals(currentState.selectedFilter, ignoreCase = true) == true

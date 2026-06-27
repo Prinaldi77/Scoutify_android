@@ -22,12 +22,12 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"https://www.scoutify.my.id/api/\"")
+            buildConfigField("String", "BASE_URL", "\"https://backend-six-pink-29mzrqv0gj.vercel.app/api/\"")
         }
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            buildConfigField("String", "BASE_URL", "\"https://www.scoutify.my.id/api/\"")
+            buildConfigField("String", "BASE_URL", "\"https://backend-six-pink-29mzrqv0gj.vercel.app/api/\"")
         }
     }
     compileOptions {

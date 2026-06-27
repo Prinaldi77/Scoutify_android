@@ -1,8 +1,10 @@
 package com.pab.scoutify.ui.dashboard.components
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -19,6 +21,17 @@ fun SelfieOverlay(
     isFaceDetected: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val infiniteTransition = rememberInfiniteTransition(label = "scanner")
+    val scannerProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scannerProgress"
+    )
+
     Canvas(
         modifier = modifier
             .fillMaxSize()
@@ -50,13 +63,33 @@ fun SelfieOverlay(
         )
 
         // Draw oval border
-        val borderColor = if (isFaceDetected) Color(0xFF2D6A4F) else Color.Red
+        val borderColor = if (isFaceDetected) Color(0xFF2E7D32) else Color.Red
         drawOval(
             color = borderColor,
             topLeft = ovalRect.topLeft,
             size = ovalRect.size,
             style = Stroke(width = 3.dp.toPx())
         )
+
+        // Draw animated laser scanning line
+        val scanY = top + (ovalHeight * scannerProgress)
+        // We calculate the width of the oval at this Y level using the ellipse equation:
+        // (x - h)^2 / a^2 + (y - k)^2 / b^2 = 1
+        val h = left + ovalWidth / 2
+        val k = top + ovalHeight / 2
+        val a = ovalWidth / 2
+        val b = ovalHeight / 2
+        val dy = scanY - k
+        val term = 1f - (dy * dy) / (b * b)
+        if (term >= 0) {
+            val halfLineWidth = a * kotlin.math.sqrt(term)
+            drawLine(
+                color = borderColor.copy(alpha = 0.8f),
+                start = Offset(h - halfLineWidth, scanY),
+                end = Offset(h + halfLineWidth, scanY),
+                strokeWidth = 3.dp.toPx()
+            )
+        }
 
         // Corner indicators (optional, similar to design)
         val cornerSize = 40.dp.toPx()

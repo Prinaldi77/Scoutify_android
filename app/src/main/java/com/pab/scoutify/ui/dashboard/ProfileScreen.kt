@@ -28,6 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.pab.scoutify.R
@@ -115,8 +117,8 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color(0xFF5E35B1))
+                    IconButton(onClick = { showEditDialog = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Profil", tint = Color(0xFF5E35B1))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -139,10 +141,40 @@ fun ProfileScreen(
             ) {
                 ProfileHeaderCard(
                     profile = uiState.profile,
-                    onAddPhotoClick = { imagePickerLauncher.launch("image/*") }
+                    onAddPhotoClick = { imagePickerLauncher.launch("image/*") },
+                    onEditProfile = { showEditDialog = true }
                 )
 
                 InfoMembershipSection(profile = uiState.profile)
+
+                // Menu Action Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column {
+                        ProfileMenuItem(
+                            icon = Icons.Default.Edit,
+                            label = "Edit Profil Saya",
+                            onClick = { showEditDialog = true }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F5))
+                        ProfileMenuItem(
+                            icon = Icons.Default.Lock,
+                            label = "Ganti Password",
+                            onClick = { showPasswordDialog = true }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F5))
+                        ProfileMenuItem(
+                            icon = Icons.Default.ExitToApp,
+                            label = "Keluar / Logout",
+                            textColor = Color.Red,
+                            onClick = { showLogoutDialog = true }
+                        )
+                    }
+                }
 
                 Text(
                     text = "Scoutify v2.4.0\nDibuat dengan semangat kepanduan",
@@ -159,85 +191,174 @@ fun ProfileScreen(
         }
     }
 
-    // Modal Edit Profil
+    // Modal Edit Profil Modern
     if (showEditDialog) {
-        AlertDialog(
+        Dialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text("Edit Profil", fontWeight = FontWeight.Bold) },
-            text = {
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .wrapContentHeight(),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
                 Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Surface(
+                                color = Color(0xFFEFEBFA),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color(0xFF5E35B1), modifier = Modifier.size(18.dp))
+                                }
+                            }
+                            Text(
+                                text = "Edit Profil Saya",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color(0xFF5E35B1)
+                            )
+                        }
+                        IconButton(onClick = { showEditDialog = false }) {
+                            Icon(Icons.Default.Close, contentDescription = "Tutup", tint = Color.Gray)
+                        }
+                    }
+
+                    HorizontalDivider(color = Color(0xFFF1F3F5))
+
                     OutlinedTextField(
                         value = nameInput,
                         onValueChange = { nameInput = it },
                         label = { Text("Nama Lengkap") },
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.Gray) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF5E35B1),
+                            focusedLabelColor = Color(0xFF5E35B1)
+                        )
                     )
+
                     OutlinedTextField(
                         value = emailInput,
                         onValueChange = { emailInput = it },
                         label = { Text("Email") },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color.Gray) },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = false, // Email is managed by auth and cannot be changed here directly
-                        shape = RoundedCornerShape(8.dp)
+                        enabled = false,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF5E35B1),
+                            focusedLabelColor = Color(0xFF5E35B1)
+                        )
                     )
+
                     OutlinedTextField(
                         value = phoneInput,
                         onValueChange = { phoneInput = it },
                         label = { Text("Nomor Telepon") },
+                        leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = Color.Gray) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF5E35B1),
+                            focusedLabelColor = Color(0xFF5E35B1)
+                        )
                     )
+
                     OutlinedTextField(
                         value = gugusDepanInput,
                         onValueChange = { gugusDepanInput = it },
-                        label = { Text("Gugus Depan") },
+                        label = { Text("Kelas") },
+                        leadingIcon = { Icon(Icons.Default.Class, contentDescription = null, tint = Color.Gray) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF5E35B1),
+                            focusedLabelColor = Color(0xFF5E35B1)
+                        )
                     )
+
                     OutlinedTextField(
                         value = nomorIndukInput,
                         onValueChange = { nomorIndukInput = it },
                         label = { Text("Nomor Induk / NISN") },
+                        leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null, tint = Color.Gray) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF5E35B1),
+                            focusedLabelColor = Color(0xFF5E35B1)
+                        )
                     )
+
                     OutlinedTextField(
                         value = jabatanInput,
                         onValueChange = { jabatanInput = it },
                         label = { Text("Jabatan") },
+                        leadingIcon = { Icon(Icons.Default.Groups, contentDescription = null, tint = Color.Gray) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.updateProfile(
-                            fullName = nameInput,
-                            phoneNumber = phoneInput,
-                            email = emailInput,
-                            address = null,
-                            gugusDepan = gugusDepanInput,
-                            nomorInduk = nomorIndukInput,
-                            jabatan = jabatanInput
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF5E35B1),
+                            focusedLabelColor = Color(0xFF5E35B1)
                         )
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1))
-                ) {
-                    Text("Simpan")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showEditDialog = false }) {
-                    Text("Batal")
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TextButton(
+                            onClick = { showEditDialog = false },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Batal", color = Color.Gray, fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = {
+                                viewModel.updateProfile(
+                                    fullName = nameInput,
+                                    phoneNumber = phoneInput,
+                                    email = emailInput,
+                                    address = null,
+                                    gugusDepan = gugusDepanInput,
+                                    nomorInduk = nomorIndukInput,
+                                    jabatan = jabatanInput
+                                )
+                            },
+                            modifier = Modifier.weight(1.5f).height(48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5E35B1))
+                        ) {
+                            Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Simpan", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
-        )
+        }
     }
 
     // Modal Ganti Password
@@ -319,7 +440,7 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileHeaderCard(profile: ProfileData?, onAddPhotoClick: () -> Unit) {
+fun ProfileHeaderCard(profile: ProfileData?, onAddPhotoClick: () -> Unit, onEditProfile: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -383,6 +504,31 @@ fun ProfileHeaderCard(profile: ProfileData?, onAddPhotoClick: () -> Unit) {
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
+                Spacer(modifier = Modifier.width(4.dp))
+                Surface(
+                    color = Color(0xFFEFEBFA),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.clickable { onEditProfile() }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit Profil",
+                            tint = Color(0xFF5E35B1),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "Ubah",
+                            color = Color(0xFF5E35B1),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
     }
@@ -399,11 +545,11 @@ fun InfoMembershipSection(profile: ProfileData?) {
             border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE9ECEF))
         ) {
             Column {
-                MembershipItem(Icons.Default.Groups, "Gugus Depan", profile?.gugusDepan ?: "-")
+                MembershipItem(Icons.Default.Class, "Kelas", profile?.gugusDepan ?: "-")
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F5))
                 MembershipItem(Icons.Default.Groups, "Ambalan/Regu", profile?.regu ?: "-")
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F5))
-                MembershipItem(Icons.Default.Phone, "Phone Number", profile?.phone ?: "-")
+                MembershipItem(Icons.Default.Phone, "Nomor Telepon", profile?.phone ?: "-")
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFF1F3F5))
                 MembershipItem(Icons.Default.Email, "Email", profile?.email ?: "-")
             }

@@ -74,4 +74,23 @@ class AttendanceRepository @Inject constructor(
             Resource.Error(e.localizedMessage ?: "Error")
         }
     }
+
+    suspend fun submitPermit(
+        kegiatanId: RequestBody,
+        reason: RequestBody,
+        type: RequestBody,
+        document: MultipartBody.Part?
+    ): Resource<BaseResponse<Any>> {
+        return try {
+            val response = apiService.submitPermit(kegiatanId, reason, type, document)
+            val body = response.body()
+            if (response.isSuccessful && body != null) {
+                Resource.Success(body)
+            } else {
+                Resource.Error(body?.message ?: "Gagal mengirim surat izin: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error("Kesalahan jaringan: ${e.localizedMessage}")
+        }
+    }
 }
